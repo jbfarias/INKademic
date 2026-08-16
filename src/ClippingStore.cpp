@@ -12,6 +12,7 @@
 #include <functional>
 
 #include "KOReaderDocumentId.h"
+#include "NoteStore.h"
 
 namespace {
 constexpr uint8_t LEGACY_VERSION = 1;
@@ -544,6 +545,7 @@ void ClippingStore::deleteForFilePath(const std::string& filePath, const std::st
   if (Storage.exists(path.c_str())) {
     Storage.remove(path.c_str());
   }
+  if (bookType == "epub") NoteStore::deleteForFilePath(filePath);
 }
 
 bool ClippingStore::migrateForFilePath(const std::string& oldFilePath, const std::string& newFilePath,
