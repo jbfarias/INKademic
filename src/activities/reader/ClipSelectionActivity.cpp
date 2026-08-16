@@ -317,7 +317,6 @@ void ClipSelectionActivity::render(RenderLock&&) {
   // The front buttons move the selection cursor horizontally; the physical
   // side buttons move between lines. Keep that second control layer visible on
   // non-touch readers so selection does not depend on memorizing the mapping.
-  GUI.drawSideButtonHints(renderer, tr(STR_DIR_UP), tr(STR_DIR_DOWN));
 
   renderer.displayBuffer();
 }

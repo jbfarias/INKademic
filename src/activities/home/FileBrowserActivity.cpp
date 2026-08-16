@@ -504,6 +504,7 @@ void FileBrowserActivity::showDirectoryActionMenu(const std::string& entry, bool
                              case FileBrowserAction::ViewClippings:
                              case FileBrowserAction::DeleteBookmarks:
                              case FileBrowserAction::DeleteClippings:
+                             case FileBrowserAction::EditNote:
                              case FileBrowserAction::EpubRenderMode:
                              case FileBrowserAction::ResetReaderSettings:
                              case FileBrowserAction::SendNearby:
@@ -719,6 +720,7 @@ void FileBrowserActivity::showFileActionMenu(const std::string& entry, bool igno
           case FileBrowserAction::ViewClippings:
           case FileBrowserAction::DeleteBookmarks:
           case FileBrowserAction::DeleteClippings:
+          case FileBrowserAction::EditNote:
             return;
         }
       });

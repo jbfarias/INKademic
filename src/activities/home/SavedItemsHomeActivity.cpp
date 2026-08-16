@@ -29,7 +29,6 @@ namespace fui = freeink::ui;
 namespace {
 constexpr unsigned long SAVED_ITEM_DELETE_HOLD_MS = 1000;
 constexpr fui::ActionId ACTION_ROW = 1;
-constexpr StrId SAVED_ITEMS_TITLE = StrId::STR_NOTES_AND_BOOKMARKS;
 
 void mergeBookmarkEntry(std::vector<SavedBookEntry>& out, const BookmarkedBookEntry& entry) {
   auto it = std::find_if(out.begin(), out.end(), [&](const SavedBookEntry& existing) {
@@ -334,9 +333,9 @@ void SavedItemsHomeActivity::render(RenderLock&&) {
   // CrossInk Notes: this screen lists notes/tags alongside bookmarks, so it
   // keeps the CrossNotes name rather than upstream's "Bookmarks and Clippings".
   if (mappedInput.hasTouchHardware()) {
-    TouchHeaderBackButton::drawCompact(renderer, tr(SAVED_ITEMS_TITLE));
+    TouchHeaderBackButton::drawCompact(renderer, tr(STR_NOTES_AND_BOOKMARKS));
   } else {
-    CompactHeader::drawTitle(renderer, tr(SAVED_ITEMS_TITLE));
+    CompactHeader::drawTitle(renderer, tr(STR_NOTES_AND_BOOKMARKS));
   }
   uiReady = false;
   app.render();

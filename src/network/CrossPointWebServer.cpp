@@ -19,6 +19,7 @@
 #include <cctype>
 #include <cstring>
 #include <iterator>
+#include <string_view>
 
 #include "AppCapabilities.h"
 #include "AppVersion.h"
@@ -2169,7 +2170,7 @@ void CrossPointWebServer::handleGetHighlights() const {
     return;
   }
   const String path = server->arg("path");
-  if (path.isEmpty() || !FsHelpers::hasEpubExtension(path.c_str())) {
+  if (path.isEmpty() || !FsHelpers::hasEpubExtension(path)) {
     server->send(400, "text/plain", "Invalid EPUB path");
     return;
   }
@@ -2254,7 +2255,7 @@ void CrossPointWebServer::handlePostNote() {
   const uint16_t tagId = doc["tagId"] | uint16_t(0);
   const std::string text = doc["text"] | std::string{};
 
-  if (path.empty() || !FsHelpers::hasEpubExtension(path.c_str())) {
+  if (path.empty() || !FsHelpers::hasEpubExtension(std::string_view(path.data(), path.size()))) {
     server->send(400, "text/plain", "Missing or invalid book path");
     return;
   }
