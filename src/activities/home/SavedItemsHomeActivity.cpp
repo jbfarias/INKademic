@@ -282,8 +282,9 @@ void SavedItemsHomeActivity::buildListScreen(UiApp::ScreenType& screen) {
   screen.spacer(static_cast<int16_t>(metrics.verticalSpacing));
   if (books.empty()) {
     // This screen aggregates highlights, notes AND bookmarks, so the
-    // bookmarks-only wording undersold it on a first run.
-  screen.centeredText(tr(STR_NO_BOOKMARKS), screen.theme().bodyText);
+    // bookmarks-only wording undersold it on a first run. Keep the existing
+    // empty-state translation until a dedicated empty-state string is added.
+    screen.centeredText(tr(STR_NO_BOOKMARKS), screen.theme().bodyText);
     return;
   }
   std::vector<fui::ListItem> items;

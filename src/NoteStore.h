@@ -77,12 +77,11 @@ class NoteStore {
   const Note* getNoteForClipping(uint16_t spineIndex, uint16_t startPage, uint16_t startWordIndex,
                                  uint32_t clippingTimestamp) const;
 
-  // Schema version written into the notes file. Every field so far has an
-  // unambiguous default, so nothing needs it yet — but without a marker a
-  // future change could not tell "old file, field absent" from "new file,
-  // field deliberately zero". One integer now is far cheaper than retrofitting
-  // one later. 0 means a file written before the marker existed.
-  static constexpr int kNotesFileVersion = 1;
+  // Schema version written into the notes file. Version 1 was the initial
+  // CrossNotes-compatible format; version 2 adds the content-derived
+  // documentId while continuing to read files without it. 0 means a file
+  // written before the marker existed.
+  static constexpr int kNotesFileVersion = 2;
 
   // Applies text and/or tag in ONE file write. saveNote() followed by saveTag()
   // re-serialises and rewrites the whole per-book notes file twice for what the
