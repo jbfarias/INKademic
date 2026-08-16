@@ -22,8 +22,11 @@
 
 #include "AppCapabilities.h"
 #include "AppVersion.h"
+#include "AnnotationTagStore.h"
+#include "ClippingStore.h"
 #include "CrossPointSettings.h"
 #include "FontInstaller.h"
+#include "NoteStore.h"
 #include "OpdsServerStore.h"
 #include "QuickActions.h"
 #include "SdCardFontSystem.h"
@@ -33,6 +36,7 @@
 #include "activities/boot_sleep/SleepImageIndex.h"
 #include "html/FilesPageHtml.generated.h"
 #include "html/FontsPageHtml.generated.h"
+#include "html/HighlightsPageHtml.generated.h"
 #include "html/HomePageHtml.generated.h"
 #include "html/LogoPng.generated.h"
 #include "html/SettingsPageHtml.generated.h"
@@ -333,6 +337,15 @@ void CrossPointWebServer::begin() {
   server->on("/settings", HTTP_GET, [this] { handleSettingsPage(); });
   server->on("/api/settings", HTTP_GET, [this] { handleGetSettings(); });
   server->on("/api/settings", HTTP_POST, [this] { handlePostSettings(); });
+
+  // Highlights and written notes. These use the academic ClippingStore v4
+  // unchanged and keep note records in their own store.
+  server->on("/highlights", HTTP_GET, [this] {
+    server->sendHeader("Content-Encoding", "gzip");
+    server->send_P(200, "text/html", HighlightsPageHtml, HighlightsPageHtmlCompressedSize);
+  });
+  server->on("/api/highlights", HTTP_GET, [this] { handleGetHighlights(); });
+  server->on("/api/notes", HTTP_POST, [this] { handlePostNote(); });
 
   // Font management endpoints
   server->on("/fonts", HTTP_GET, [this] { handleFontsPage(); });
@@ -2148,4 +2161,120 @@ void CrossPointWebServer::handleFontDelete() {
     server->send(500, "application/json", "{\"error\":\"Delete failed\"}");
     LOG_ERR("WEB", "Failed to delete font family: %s", familyName);
   }
+}
+
+void CrossPointWebServer::handleGetHighlights() const {
+  if (!server->hasArg("path")) {
+    server->send(400, "text/plain", "Missing path parameter");
+    return;
+  }
+  const String path = server->arg("path");
+  if (path.isEmpty() || !FsHelpers::hasEpubExtension(path.c_str())) {
+    server->send(400, "text/plain", "Invalid EPUB path");
+    return;
+  }
+
+  ANNOTATION_TAGS.load();
+  CLIPPINGS.loadForBook(path.c_str(), "", "", "epub");
+  NOTES.loadForBook(path.c_str(), "epub");
+  const auto& clippings = CLIPPINGS.getClippings();
+  server->setContentLength(CONTENT_LENGTH_UNKNOWN);
+  server->send(200, "application/json", "");
+  server->sendContent("[");
+
+  bool first = true;
+  JsonDocument doc;
+  for (size_t i = 0; i < clippings.size(); ++i) {
+    const Clipping& clipping = clippings[i];
+    const Note* note = NOTES.getNoteForClipping(clipping.spineIndex, clipping.startPage,
+                                                 clipping.startWordIndex, clipping.timestamp);
+    std::string text;
+    CLIPPINGS.readClippingText(i, text);
+    doc.clear();
+    doc["spineIndex"] = clipping.spineIndex;
+    doc["startPage"] = clipping.startPage;
+    doc["startWordIndex"] = clipping.startWordIndex;
+    doc["timestamp"] = clipping.timestamp;
+    doc["chapterTitle"] = clipping.chapterTitle;
+    doc["text"] = text;
+    if (i == 0) {
+      JsonArray tags = doc["availableTags"].to<JsonArray>();
+      for (uint8_t tagIndex = 0; tagIndex < ANNOTATION_TAGS.count(); ++tagIndex) {
+        const AnnotationTag* tag = ANNOTATION_TAGS.at(tagIndex);
+        if (!tag) continue;
+        JsonObject item = tags.add<JsonObject>();
+        item["id"] = tag->id;
+        item["name"] = tag->name;
+      }
+    }
+    if (note) {
+      JsonObject noteObject = doc["note"].to<JsonObject>();
+      noteObject["text"] = note->text;
+      noteObject["tagId"] = note->tagId;
+      if (note->legacyTag != 0) noteObject["legacyTag"] = std::string(1, note->legacyTag);
+      const char* tagName = ANNOTATION_TAGS.nameForId(note->tagId);
+      if (tagName) noteObject["tagName"] = tagName;
+    } else {
+      doc["note"] = nullptr;
+    }
+    String output;
+    serializeJson(doc, output);
+    if (!first) server->sendContent(",");
+    first = false;
+    server->sendContent(output);
+  }
+  server->sendContent("]");
+  server->sendContent("");
+  CLIPPINGS.unload();
+  NOTES.unload();
+}
+
+void CrossPointWebServer::handlePostNote() {
+  if (!server->hasArg("plain")) {
+    server->send(400, "text/plain", "Missing JSON body");
+    return;
+  }
+  const String body = server->arg("plain");
+  constexpr size_t MAX_NOTE_BODY_BYTES = NoteStore::kNoteTextMax + 1024;
+  if (body.length() > MAX_NOTE_BODY_BYTES) {
+    server->send(413, "text/plain", "Note too long");
+    return;
+  }
+  JsonDocument doc;
+  if (const DeserializationError err = deserializeJson(doc, body)) {
+    server->send(400, "text/plain", String("Invalid JSON: ") + err.c_str());
+    return;
+  }
+
+  const std::string path = doc["path"] | std::string{};
+  const uint16_t spineIndex = doc["spineIndex"] | uint16_t(0);
+  const uint16_t startPage = doc["startPage"] | uint16_t(0);
+  const uint16_t startWordIndex = doc["startWordIndex"] | uint16_t(0);
+  const uint32_t clippingTimestamp = doc["timestamp"] | uint32_t(0);
+  const uint16_t tagId = doc["tagId"] | uint16_t(0);
+  const std::string text = doc["text"] | std::string{};
+
+  if (path.empty() || !FsHelpers::hasEpubExtension(path.c_str())) {
+    server->send(400, "text/plain", "Missing or invalid book path");
+    return;
+  }
+  ANNOTATION_TAGS.load();
+  if (tagId != 0 && ANNOTATION_TAGS.nameForId(tagId) == nullptr) {
+    server->send(400, "text/plain", "Unknown annotation tag");
+    return;
+  }
+
+  NOTES.loadForBook(path.c_str(), "epub");
+  const bool hasTag = doc["tagId"].is<JsonVariant>();
+  const bool ok = (text.empty() && (!hasTag || tagId == 0))
+                     ? NOTES.deleteNote(path.c_str(), spineIndex, startPage, startWordIndex, clippingTimestamp)
+                     : NOTES.saveNoteAndTag(path.c_str(), spineIndex, startPage, startWordIndex, clippingTimestamp,
+                                            text.c_str(), tagId, hasTag);
+  NOTES.unload();
+
+  if (!ok) {
+    server->send(500, "text/plain", "Could not save note");
+    return;
+  }
+  server->send(200, "text/plain", "OK");
 }

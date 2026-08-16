@@ -8,8 +8,10 @@
 
 #include "AnnotationTagStore.h"
 #include "MappedInputManager.h"
+#include "NoteStore.h"
 #include "activities/ActivityResult.h"
 #include "activities/home/FileBrowserActionActivity.h"
+#include "activities/util/KeyboardEntryActivity.h"
 #include "components/TouchHeaderBackButton.h"
 #include "components/UITheme.h"
 #include "components/UIThemeTokens.h"
@@ -177,8 +179,23 @@ void EpubReaderClippingListActivity::onEnter() {
   app.setScreen(&EpubReaderClippingListActivity::listScreen, this);
   detailText.reserve(CLIPPING_TEXT_INITIAL_RESERVE);
   detailLines.reserve(32);
+  NOTES.loadForBook(CLIPPINGS.getBookFilePath().c_str(), "epub");
+  std::vector<NoteStore::ClippingKey> live;
+  live.reserve(CLIPPINGS.clippingCount());
+  for (size_t i = 0; i < CLIPPINGS.clippingCount(); ++i) {
+    const Clipping* clipping = CLIPPINGS.clippingAt(i);
+    if (clipping) live.push_back({clipping->spineIndex, clipping->startPage, clipping->startWordIndex,
+                                  clipping->timestamp});
+  }
+  NOTES.bindLegacyNotes(CLIPPINGS.getBookFilePath().c_str(), live);
+  NOTES.pruneMissing(CLIPPINGS.getBookFilePath().c_str(), live);
   uiItems.resize(CLIPPINGS.clippingCount());
   requestUpdate();
+}
+
+void EpubReaderClippingListActivity::onExit() {
+  NOTES.unload();
+  Activity::onExit();
 }
 
 int EpubReaderClippingListActivity::getDetailTextWidth() const {
@@ -252,6 +269,34 @@ void EpubReaderClippingListActivity::rebuildDetailLayoutIfNeeded() {
 
   buildWrappedDetailLines(renderer, UI_10_FONT_ID, detailText, textWidth, detailLines);
   if (detailLines.empty()) detailLines.push_back("");
+  const Clipping* clipping = selectedIndex >= 0 ? CLIPPINGS.clippingAt(static_cast<size_t>(selectedIndex)) : nullptr;
+  if (clipping) {
+    const Note* note = NOTES.getNoteForClipping(clipping->spineIndex, clipping->startPage,
+                                                clipping->startWordIndex, clipping->timestamp);
+    if (note && (note->tagId != 0 || note->legacyTag != 0 || !note->text.empty())) {
+      detailLines.push_back("");
+      std::string label = "Note";
+      if (note->tagId != 0) {
+        const char* tagName = ANNOTATION_TAGS.nameForId(note->tagId);
+        if (tagName) {
+          label += " [";
+          label += tagName;
+          label += "]";
+        }
+      } else if (note->legacyTag != 0) {
+        label += " [";
+        label += note->legacyTag;
+        label += "]";
+      }
+      label += ":";
+      detailLines.push_back(std::move(label));
+      if (!note->text.empty()) {
+        std::vector<std::string> noteLines;
+        buildWrappedDetailLines(renderer, UI_10_FONT_ID, note->text, textWidth, noteLines);
+        detailLines.insert(detailLines.end(), noteLines.begin(), noteLines.end());
+      }
+    }
+  }
   detailLayoutWidth = textWidth;
   detailLinesPerPage = linesPerPage;
   detailPage = std::min(detailPage, getDetailPageCount() - 1);
@@ -260,6 +305,11 @@ void EpubReaderClippingListActivity::rebuildDetailLayoutIfNeeded() {
 void EpubReaderClippingListActivity::deleteSelectedClipping() {
   if (selectedIndex < 0 || selectedIndex >= static_cast<int>(CLIPPINGS.clippingCount())) return;
 
+  const Clipping* doomed = CLIPPINGS.clippingAt(static_cast<size_t>(selectedIndex));
+  if (doomed && !CLIPPINGS.getBookFilePath().empty()) {
+    NOTES.deleteNote(CLIPPINGS.getBookFilePath().c_str(), doomed->spineIndex, doomed->startPage,
+                     doomed->startWordIndex, doomed->timestamp);
+  }
   if (!CLIPPINGS.removeClippingAt(static_cast<size_t>(selectedIndex))) return;
 
   detailMode = false;
@@ -288,7 +338,8 @@ void EpubReaderClippingListActivity::showClippingActionMenu(const bool ignoreIni
   const uint16_t selectedStartWordIndex = selectedClipping->startWordIndex;
   const uint32_t selectedTimestamp = selectedClipping->timestamp;
   std::vector<FileBrowserActionActivity::MenuItem> items;
-  items.reserve(1);
+  items.reserve(2);
+  items.push_back({FileBrowserAction::EditNote, StrId::STR_EDIT_NOTE});
   items.push_back({FileBrowserAction::Delete, StrId::STR_DELETE});
 
   startActivityForResult(
@@ -303,7 +354,35 @@ void EpubReaderClippingListActivity::showClippingActionMenu(const bool ignoreIni
         }
 
         const auto* actionResult = std::get_if<FileBrowserActionResult>(&result.data);
-        if (!actionResult || static_cast<FileBrowserAction>(actionResult->action) != FileBrowserAction::Delete) {
+        if (!actionResult) {
+          requestUpdate();
+          return;
+        }
+
+        const auto action = static_cast<FileBrowserAction>(actionResult->action);
+        if (action == FileBrowserAction::EditNote) {
+          const Note* existing = NOTES.getNoteForClipping(selectedSpineIndex, selectedStartPage,
+                                                          selectedStartWordIndex, selectedTimestamp);
+          const std::string initial = existing ? existing->text : std::string{};
+          startActivityForResult(
+              std::make_unique<KeyboardEntryActivity>(renderer, mappedInput, "Edit Note", initial,
+                                                      NoteStore::kNoteTextMax),
+              [this, selectedSpineIndex, selectedStartPage, selectedStartWordIndex,
+               selectedTimestamp](const ActivityResult& noteResult) {
+                if (!noteResult.isCancelled) {
+                  const auto* keyboard = std::get_if<KeyboardResult>(&noteResult.data);
+                  if (keyboard) {
+                    NOTES.saveNote(CLIPPINGS.getBookFilePath().c_str(), selectedSpineIndex, selectedStartPage,
+                                   selectedStartWordIndex, selectedTimestamp, keyboard->text.c_str());
+                    detailLayoutWidth = 0;
+                    detailLinesPerPage = 0;
+                  }
+                }
+                requestUpdate();
+              });
+          return;
+        }
+        if (action != FileBrowserAction::Delete) {
           requestUpdate();
           return;
         }

@@ -13,6 +13,7 @@
 
 #include "BookmarkStore.h"
 #include "ClippingStore.h"
+#include "NoteStore.h"
 #include "CrossPointSettings.h"
 #include "CrossPointState.h"
 #include "PageTagStore.h"
@@ -82,6 +83,7 @@ void clearFileMetadata(const std::string& fullPath) {
     BookmarkStore::deleteForFilePath(fullPath, "epub");
     ClippingStore::deleteForFilePath(fullPath, "epub");
     PageTagStore::deleteForFilePath(fullPath, "epub");
+    NoteStore::deleteForFilePath(fullPath);
   } else if (FsHelpers::hasXtcExtension(fullPath)) {
     BookmarkStore::deleteForFilePath(fullPath, "xtc");
   } else if (FsHelpers::hasTxtExtension(fullPath) || FsHelpers::hasMarkdownExtension(fullPath)) {

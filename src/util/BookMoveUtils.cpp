@@ -7,6 +7,7 @@
 #include "BookmarkStore.h"
 #include "ClippingStore.h"
 #include "CrossPointState.h"
+#include "NoteStore.h"
 #include "PageTagStore.h"
 #include "RecentBooksStore.h"
 
@@ -66,6 +67,8 @@ bool migrateMovedEpubState(const std::string& oldPath, const std::string& newPat
     LOG_ERR("BookMove", "Failed to migrate page tags for moved book %s -> %s", oldPath.c_str(), newPath.c_str());
     ok = false;
   }
+
+  NoteStore::migrateForFilePath(oldPath, newPath);
 
   if (keepInRecents) {
     RECENT_BOOKS.updatePath(oldPath, newPath, oldCachePath, newCachePath);

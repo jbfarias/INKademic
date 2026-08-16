@@ -254,10 +254,8 @@ bool ensureReusableCoverPath(RecentBook& book) {
   return true;
 }
 
-const char* savedItemsLabel(bool hasBookmarks, bool hasClippings) {
-  if (hasBookmarks && hasClippings) return tr(STR_BOOKMARKS_AND_CLIPPINGS);
-  if (hasClippings) return tr(STR_CLIPPINGS);
-  return tr(STR_BOOKMARKS);
+const char* savedItemsLabel(bool /*hasBookmarks*/, bool /*hasClippings*/) {
+  return tr(STR_NOTES_AND_BOOKMARKS);
 }
 
 void appendHomeMenuItems(HomeMenuEntries& items, bool hasOpdsServers, bool hasReadingStats, bool hasBookmarks,

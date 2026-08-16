@@ -111,6 +111,12 @@ class CrossPointWebServer {
   void handleGetSettings() const;
   void handlePostSettings();
 
+  // Highlights and Notes handlers. Note storage is deliberately separate from
+  // ClippingStore v4, while the response is built from the academic clipping
+  // records and their document identity.
+  void handleGetHighlights() const;
+  void handlePostNote();
+
   // Font management handlers
   void handleFontsPage() const;
   void handleFontList() const;
