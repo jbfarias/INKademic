@@ -66,7 +66,7 @@ MOCK_API = {
         {"ssid": "Library Guest", "hasPassword": False, "isLastConnected": False},
     ],
     "/api/opds": [
-        {"name": "Project Gutenberg", "url": "https://m.gutenberg.org/ebooks.opds/",
+        {"name": "Project Gutenberg", "url": "https://www.gutenberg.org/ebooks/search.opds/",
          "username": "", "hasPassword": False, "filenameFormat": "author_title"},
     ],
     "/api/settings": [

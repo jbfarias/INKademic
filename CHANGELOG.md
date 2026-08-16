@@ -1,7 +1,15 @@
-## [Unreleased]
+## [v1.5.2] - 2026-08-16
 
 ### Added
 
+- Academic notes and highlights backed by the compatible NoteStore, with
+  content-derived document identity and migration support for existing files.
+- A web **Highlights** page at `/highlights` for searching, filtering, editing,
+  tagging, and exporting notes associated with EPUB clippings.
+- User-defined academic annotation tags for EPUB clippings and tagged pages,
+  including the existing ClippingStore v4 format and compatibility behavior.
+- Project Gutenberg as a bundled OPDS catalog, with one-time migration for
+  existing OPDS configurations and direct EPUB downloads.
 - User-defined annotation tags can be managed from Reader settings and assigned to EPUB clippings or the current page.
 - Tagged pages show a compact indicator in the reader status bar, and clipping exports include the assigned tag.
 - A diagnostic X3/X4 build can mirror the full `LOG_*` application stream to the SD card with UTC timestamps, uptime, reset context, activity transitions, memory/battery heartbeats, and panic reports.
@@ -12,6 +20,8 @@
 - Clipping files now include a content-derived document identity so stale annotations are not applied to a different EPUB at the same path.
 - Clipping selection now shows the Up/Down side-button actions on non-touch readers, while ordinary clipping reads reserve only a small initial text buffer and grow up to the existing 4096-byte limit when needed.
 - Persistent stores and reader caches now attempt to recreate missing SD-card directories when a write fails.
+- OPDS downloads identify this fork in the HTTP User-Agent, and the bundled
+  Gutenberg catalog uses the official XML OPDS feed.
 
 ### Fixed
 
@@ -19,6 +29,8 @@
 - Oversized clipping selections now report an explicit error instead of being silently truncated.
 - Network activities now stop their local server, DNS, and mDNS resources before disconnecting Wi-Fi or requesting the heap-clearing restart.
 - Choosing a clipping tag no longer leaves the reading-pace timer paused when selection setup exits early.
+- Notes whose clippings are deleted are pruned, preventing orphaned academic
+  notes from appearing in per-book counts or exports.
 
 ## [v1.5.1] - 2026-08-12
 

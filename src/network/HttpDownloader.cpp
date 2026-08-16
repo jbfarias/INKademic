@@ -30,6 +30,8 @@ constexpr int HTTP_READ_POLL_TIMEOUT_MS = 5000;
 constexpr uint32_t DOWNLOAD_IDLE_TIMEOUT_MS = 30000;
 constexpr size_t DEFAULT_DOWNLOAD_BUFFER_SIZE = 2048;
 constexpr uint8_t MAX_REDIRECTS = 5;
+constexpr char HTTP_USER_AGENT[] =
+    "CrossInk-Academic/" CROSSINK_VERSION " (+https://github.com/jbfarias/CrossInk-academic)";
 
 void logNetworkState(const char* phase) {
   LOG_DBG("HTTP", "%s: heap free=%u maxAlloc=%u wifi=%d rssi=%d", phase, ESP.getFreeHeap(), ESP.getMaxAllocHeap(),
@@ -170,7 +172,7 @@ struct Sink {
 
 void setRequestHeaders(esp_http_client_handle_t client, const std::string& username, const std::string& password,
                        size_t resumeOffset, bool sendAuthorization) {
-  esp_http_client_set_header(client, "User-Agent", "CrossInk-ESP32-" CROSSINK_VERSION);
+  esp_http_client_set_header(client, "User-Agent", HTTP_USER_AGENT);
   esp_http_client_set_header(client, "Connection", "close");
   if (resumeOffset > 0) {
     char rangeHeader[40];
@@ -221,7 +223,7 @@ HttpDownloader::DownloadError runGetWolfSsl(const std::string& url, const std::s
     }
     // Replace SecureHttpClient's built-in User-Agent so strict servers receive
     // exactly one header while retaining CrossInk's device/version identity.
-    http.setUserAgent("CrossInk-ESP32-" CROSSINK_VERSION);
+    http.setUserAgent(HTTP_USER_AGENT);
     if (sink.resumeOffset > 0) {
       char rangeHeader[40];
       snprintf(rangeHeader, sizeof(rangeHeader), "bytes=%zu-", sink.resumeOffset);

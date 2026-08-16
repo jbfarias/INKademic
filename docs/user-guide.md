@@ -256,6 +256,10 @@ device model and build.
   [Reader Features](./reader-features.md) for their behavior, including the
   [Bionic Reading](./reader-features.md#bionic-reading) guide.
 
+- **Manage Annotation Tags**: Create, rename, and delete the academic tags used
+  by clippings and current-page markers. See [Academic Notes, Tags, And
+  Highlights](./reader-features.md#academic-notes-tags-and-highlights).
+
 - **Touch Reader Controls**: Enable or disable touchscreen page turns and
   reader gestures on supported devices. **Disable Touchscreen** blocks touch
   input while a book is open, while leaving touch available in reader menus so
@@ -327,6 +331,11 @@ device model and build.
 
 CrossInk supports saving multiple OPDS servers and switching between them when browsing catalogs.
 
+New installations include **Project Gutenberg** as a bundled catalog. Existing OPDS
+configurations receive it once during the upgrade; deleting it from OPDS Servers
+keeps it deleted. The bundled catalog uses the official XML OPDS feed at
+`https://www.gutenberg.org/ebooks/search.opds/`.
+
 1. Open **Settings -> System -> OPDS Servers**.
 
 2. Select **Add Server** to create a new entry, or select an existing server to edit it.
@@ -344,6 +353,7 @@ Behavior notes:
 
 - You can store up to 8 OPDS servers.
 - OPDS authentication supports HTTP Basic auth. If you use Calibre Content Server with authentication enabled, set it to Basic (not Digest).
+- Project Gutenberg books may have different copyright status outside the United States; check the applicable local terms before downloading.
 
 You can also manage OPDS servers from the web interface while in File Transfer mode:
 

@@ -30,11 +30,14 @@ struct OpdsServer {
 class OpdsServerStore : public PersistableStore<OpdsServerStore> {
  private:
   std::vector<OpdsServer> servers;
+  // Prevents a user-deleted bundled catalog from being recreated on every boot.
+  bool defaultCatalogsSeeded_ = false;
   bool loaded_ = false;
 
   static constexpr size_t MAX_SERVERS = 8;
 
   OpdsServerStore() = default;
+  bool addBundledCatalogs();
   bool migrateFromSettings();
 
   friend class PersistableStore<OpdsServerStore>;

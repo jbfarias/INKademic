@@ -57,7 +57,7 @@ Install `esptool`:
 pip3 install esptool
 ```
 
-Download the `firmware-*.bin` file from the [releases page](https://github.com/uxjulia/CrossInk/releases), then connect your device with USB-C.
+Download the `firmware-*.bin` file from the [CrossInk Academic releases page](https://github.com/jbfarias/CrossInk-academic/releases), then connect your device with USB-C.
 
 Find the device port:
 

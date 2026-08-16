@@ -5,7 +5,7 @@ nav_order: 5
 
 # Reader Features
 
-This page covers a subset of CrossInk reader features that go beyond basic page turning. It is not a complete list of every reader setting or action. For a more complete list of features as they were released, see the [releases page](https://github.com/uxjulia/CrossInk/releases).
+This page covers a subset of CrossInk Academic reader features that go beyond basic page turning. It is not a complete list of every reader setting or action. For a more complete list of features as they were released, see the [CrossInk Academic releases page](https://github.com/jbfarias/CrossInk-academic/releases).
 
 The sections here focus on larger CrossInk-specific reader features. Small fixes, implementation details, and features that only arrived from upstream CrossPoint are intentionally left out.
 
@@ -225,6 +225,24 @@ location in the book. Touch and hold a clipping in the list, or its text in
 the detail view, to open the delete action. Deleting removes the in-app
 clipping and its highlight, not an entry already exported to
 `/My Clippings.txt`.
+
+## Academic Notes, Tags, And Highlights
+
+CrossInk Academic 1.5.2 adds notes and academic annotation tags without
+changing the existing ClippingStore v4 format. Notes are associated with the
+clipping's content-derived document identity, so an EPUB replaced at the same
+path cannot inherit annotations from an unrelated book.
+
+Use **Settings > Reader > Manage Annotation Tags** to create, rename, or
+delete the user-defined tag catalog. While reading, tags can be assigned to a
+clipping or to the current page. Tagged pages show an indicator in the reader
+status bar, and clipping exports include the assigned tag when present.
+
+When the reader is in **File Transfer** mode, open `/highlights` in the device
+web portal. Select a book to search and filter its highlights, edit note text
+or tags, delete notes, and export the visible notes as Markdown. Existing
+CrossNotes-compatible note files and older annotation data are read through
+the available migrations; notes belonging to deleted clippings are pruned.
 
 ## Reading Stats
 

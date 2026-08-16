@@ -13,6 +13,8 @@
 namespace {
 constexpr char FILENAME_FORMAT_AUTHOR_TITLE[] = "author_title";
 constexpr char FILENAME_FORMAT_TITLE_AUTHOR[] = "title_author";
+constexpr char PROJECT_GUTENBERG_NAME[] = "Project Gutenberg";
+constexpr char PROJECT_GUTENBERG_OPDS_URL[] = "https://www.gutenberg.org/ebooks/search.opds/";
 }  // namespace
 
 const char* opdsFilenameFormatToJson(const OpdsFilenameFormat format) {
@@ -33,6 +35,7 @@ OpdsFilenameFormat opdsFilenameFormatFromJson(const char* value) {
 }
 
 void OpdsServerStore::toJson(JsonDocument& doc) const {
+  doc["defaultCatalogsSeeded"] = defaultCatalogsSeeded_;
   JsonArray arr = doc["servers"].to<JsonArray>();
   for (const auto& server : servers) {
     JsonObject obj = arr.add<JsonObject>();
@@ -48,6 +51,7 @@ bool OpdsServerStore::fromJson(JsonVariantConst doc) {
   // Tolerate a missing/invalid 'servers' key (treat as empty list); only a
   // JSON parse error is fatal. A null JsonArray iterates zero times.
   servers.clear();
+  defaultCatalogsSeeded_ = doc["defaultCatalogsSeeded"] | false;
   JsonArrayConst arr = doc["servers"].as<JsonArrayConst>();
   servers.reserve(std::min(arr.size(), MAX_SERVERS));
   bool needsResave = false;
@@ -80,6 +84,14 @@ bool OpdsServerStore::fromJson(JsonVariantConst doc) {
     requestResave();
   }
 
+  // Add bundled catalogs once when upgrading an older OPDS store. The marker
+  // is persisted so deleting a bundled catalog remains a user choice.
+  if (!defaultCatalogsSeeded_ && addBundledCatalogs()) {
+    defaultCatalogsSeeded_ = true;
+    requestResave();
+    LOG_DBG("OPS", "Added bundled Project Gutenberg catalog");
+  }
+
   return true;
 }
 
@@ -98,7 +110,21 @@ bool OpdsServerStore::loadFromFile() {
     LOG_DBG("OPS", "Migrated legacy OPDS settings");
     return true;
   }
+  // A failed legacy migration must not fall through to the default catalog
+  // creation path, otherwise the legacy URL could be stranded in settings.
+  if (strlen(SETTINGS.opdsServerUrl) != 0) return false;
 
+  if (!addBundledCatalogs()) return false;
+  defaultCatalogsSeeded_ = true;
+  if (saveToFile()) {
+    LOG_DBG("OPS", "Created default OPDS catalog store");
+    return true;
+  }
+
+  // Do not expose an in-memory catalog if its persistent store could not be
+  // created; the next boot can retry safely.
+  servers.clear();
+  defaultCatalogsSeeded_ = false;
   return false;
 }
 
@@ -109,7 +135,26 @@ void OpdsServerStore::ensureLoaded() const {
 
 void OpdsServerStore::release() {
   std::vector<OpdsServer>().swap(servers);
+  defaultCatalogsSeeded_ = false;
   loaded_ = false;
+}
+
+bool OpdsServerStore::addBundledCatalogs() {
+  for (const auto& server : servers) {
+    if (server.url == PROJECT_GUTENBERG_OPDS_URL) return true;
+  }
+
+  if (servers.size() >= MAX_SERVERS) {
+    LOG_DBG("OPS", "Cannot add bundled catalogs: limit of %zu reached", MAX_SERVERS);
+    return false;
+  }
+
+  OpdsServer gutenberg;
+  gutenberg.name = PROJECT_GUTENBERG_NAME;
+  gutenberg.url = PROJECT_GUTENBERG_OPDS_URL;
+  gutenberg.filenameFormat = OpdsFilenameFormat::AUTHOR_TITLE;
+  servers.push_back(std::move(gutenberg));
+  return true;
 }
 
 bool OpdsServerStore::migrateFromSettings() {
@@ -123,6 +168,12 @@ bool OpdsServerStore::migrateFromSettings() {
   server.username = SETTINGS.opdsUsername;
   server.password = SETTINGS.opdsPassword;
   servers.push_back(std::move(server));
+
+  if (!addBundledCatalogs()) {
+    servers.clear();
+    return false;
+  }
+  defaultCatalogsSeeded_ = true;
 
   if (saveToFile()) {
     // Clear legacy fields so migration won't run again on next boot.

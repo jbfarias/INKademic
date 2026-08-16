@@ -12,6 +12,7 @@ The web server is available while the device is in **File Transfer** or
 - Create folders
 - Edit many device settings from a browser
 - Manage saved Wi-Fi networks and OPDS servers
+- View, edit, filter, tag, and export EPUB highlights and notes
 - Upload and delete `.cpfont` SD-card font families
 - Accept WebDAV clients and Calibre wireless uploads
 
@@ -77,7 +78,7 @@ OPDS server.
 
 ## Web Interface
 
-The browser UI has four primary pages.
+The browser UI has five primary pages.
 
 ### Home
 
@@ -100,6 +101,20 @@ The File Manager page can:
 Existing files with the same name are overwritten by uploads. When EPUB files
 are overwritten, moved, renamed, or deleted through the web server, the matching
 book cache is cleared so stale metadata is not reused.
+
+### Highlights and Notes
+
+The **Highlights** page lists EPUB clippings stored on the reader. Select a
+book to search and filter its highlights, edit or delete notes, assign academic
+tags, and export the visible notes as Markdown. The page is available at:
+
+```text
+http://<device-ip>/highlights
+```
+
+The page is available while File Transfer or Calibre Wireless is running. It
+uses the academic ClippingStore v4 and NoteStore data without changing the
+book's document identity or existing migrations.
 
 #### EPUB Optimization
 

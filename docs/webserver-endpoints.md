@@ -315,6 +315,38 @@ Successful response:
 {"ok":true}
 ```
 
+## Highlights and Notes API
+
+### `GET /highlights`
+
+Serves the browser page for viewing and editing EPUB highlights and notes.
+
+### `GET /api/highlights`
+
+Returns the clippings and associated notes for one EPUB. The `path` parameter
+must be an EPUB path on the SD card.
+
+```bash
+curl 'http://crosspoint.local/api/highlights?path=%2FBooks%2Fbook.epub'
+```
+
+The response includes clipping position, timestamp, chapter title, text,
+available annotation tags, and any associated note.
+
+### `POST /api/notes`
+
+Creates, updates, or deletes a note and its optional annotation tag. Sending
+empty `text` with `tagId` omitted or zero deletes the note.
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"path":"/Books/book.epub","spineIndex":0,"startPage":2,"startWordIndex":14,"timestamp":123456,"text":"Review this argument","tagId":1}' \
+  http://crosspoint.local/api/notes
+```
+
+The note store preserves the existing document identity and migration rules.
+
 ## OPDS Server API
 
 ### `GET /api/opds`

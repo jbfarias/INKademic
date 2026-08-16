@@ -1,12 +1,19 @@
-# Academic Annotation Integration on CrossInk v1.5.1-rc-2
+# Academic Annotation Integration on CrossInk Academic v1.5.2
+
+This integration is part of the official CrossInk Academic v1.5.2 release.
+The original merge work was based on CrossInk v1.5.1-rc-2 and is retained here
+for compatibility and migration history.
 
 ## Base
 
-- CrossInk tag: `v1.5.1-rc-2`
+- Release: `v1.5.2`
+- Original CrossInk base tag: `v1.5.1-rc-2`
 - Base commit: `09d0045e3eae1a519974b7b5c1b889243e5e6da0`
-- Integration branch: `academic-tags-v1.5.1-rc2`
+- Release branch: `development`
 
-This tree rebases the academic annotation and clipping work from the earlier CrossInk 1.5.0 snapshot onto CrossInk v1.5.1-rc-2.
+This release carries the academic annotation, clipping, NoteStore, highlights,
+and Project Gutenberg work while preserving the upstream reader and
+compatibility behavior.
 
 ## Academic functionality retained
 
@@ -55,7 +62,7 @@ The synthetic three-way merge required five manual resolutions:
 A full PlatformIO simulator build could not be completed in the integration container because PlatformIO package-network access is restricted. Run the following on the normal macOS development environment:
 
 ```bash
-cd CrossInk-Academic-v1.5.1-rc2
+cd CrossInk-academic
 git submodule update --init --recursive
 
 CI=1 "$HOME/.venvs/platformio-crossink/bin/pio" \

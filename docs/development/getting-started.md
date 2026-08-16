@@ -49,8 +49,8 @@ The reported major version must be 21 or newer.
 ## Clone and initialize
 
 ```sh
-git clone --recursive https://github.com/uxjulia/CrossInk
-cd CrossInk
+git clone --recursive https://github.com/jbfarias/CrossInk-academic
+cd CrossInk-academic
 ```
 
 If you already cloned without submodules:

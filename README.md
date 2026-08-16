@@ -2,6 +2,8 @@
 
 O **CrossInk Academic** é um fork do CrossInk voltado a leitores acadêmicos. O projeto preserva a base do firmware original e incorpora melhorias destinadas à leitura, organização, consulta e estudo de textos acadêmicos em dispositivos de tinta eletrônica.
 
+**Versão atual: v1.5.2 (16 de agosto de 2026).**
+
 Este é um projeto independente e não oficial. Os créditos pelo firmware original pertencem aos desenvolvedores e colaboradores do CrossInk.
 
 
@@ -58,7 +60,12 @@ My goal with this fork was to maintain the core Crosspoint firmware while integr
 - Reading [progress sync](./docs/nearby-position-sync.md) between two CrossInk devices.
 - Added customizable Auto Page Turn Interval (anything between 5-120 seconds).
 - Added ability to view Recent Books as a 3x3 grid view.
-- To view a more detailed list for each version, visit the [releases](https://github.com/uxjulia/CrossInk/releases) page to read release notes.
+- Academic notes and highlights with document-safe migrations, compatible with the fork's ClippingStore v4.
+- User-defined annotation tags for clippings and current pages, with tag-aware exports.
+- Web **Highlights** page for searching, editing, tagging, and exporting EPUB notes through `/highlights`.
+- Project Gutenberg bundled as an official OPDS catalog; additional OPDS libraries can still be added manually.
+- Anna's Archive is not included in this release.
+- To view a more detailed list for each version, visit the [CrossInk Academic releases](https://github.com/jbfarias/CrossInk-academic/releases) page.
 
 ---
 
@@ -121,7 +128,7 @@ See [Simulator](./docs/simulator.md) for setup, platform notes, keyboard control
 
 The fastest way to install Crossink is by using Inky, Crossink's web companion app: https://inky.crossink.dev/#flash-tools
 
-Download a `firmware-*.bin` from the [releases page](https://github.com/uxjulia/CrossInk/releases), then flash it with the web installer or command line.
+Download a `firmware-*.bin` from the [CrossInk Academic releases page](https://github.com/jbfarias/CrossInk-academic/releases), then flash it with the web installer or command line.
 
 See [Installation](./docs/installation.md) for step-by-step flashing and revert instructions.
 

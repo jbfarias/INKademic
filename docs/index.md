@@ -3,11 +3,11 @@ title: Home
 nav_order: 1
 ---
 
-# CrossInk
+# CrossInk Academic
 
-Welcome to CrossInk, a personal fork of CrossPoint Reader.
+Welcome to CrossInk Academic, a research-oriented fork of CrossPoint Reader.
 
-[View on GitHub](https://github.com/uxjulia/CrossInk)
+[View on GitHub](https://github.com/jbfarias/CrossInk-academic)
 
 ## User Docs
 
