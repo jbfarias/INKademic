@@ -3830,6 +3830,10 @@ void EpubReaderActivity::startClipSelection() {
       requestUpdate();
       return;
     }
+    // The picker paused the pace timer. Release that pause before handing off
+    // to the selection builder; otherwise an early return (missing section,
+    // low memory, or an empty page) leaves the reader timer stopped forever.
+    resumeReadingPaceTimer("clip_tag_selection_confirm");
     startClipSelectionForTag(tagIds[selection->index]);
   });
 }
@@ -5550,7 +5554,7 @@ void EpubReaderActivity::render(RenderLock&& lock) {
         const Clipping* clipping = CLIPPINGS.clippingAt(pendingClippingIndex);
         const uint16_t fallbackPage = static_cast<uint16_t>(std::max(0, section->currentPage));
         std::string clippingText;
-        clippingText.reserve(CLIPPING_TEXT_MAX);
+        clippingText.reserve(CLIPPING_TEXT_INITIAL_RESERVE);
         if (clipping) CLIPPINGS.readClippingText(*clipping, clippingText);
         section->currentPage =
             clipping ? resolveClippingJumpPage(*section, *clipping, clippingText, fallbackPage) : fallbackPage;
@@ -5597,7 +5601,7 @@ void EpubReaderActivity::render(RenderLock&& lock) {
         const Clipping* clipping = CLIPPINGS.clippingAt(pendingClippingIndex);
         const uint16_t fallbackPage = static_cast<uint16_t>(std::max(0, section->currentPage));
         std::string clippingText;
-        clippingText.reserve(CLIPPING_TEXT_MAX);
+        clippingText.reserve(CLIPPING_TEXT_INITIAL_RESERVE);
         if (clipping) CLIPPINGS.readClippingText(*clipping, clippingText);
         section->currentPage =
             clipping ? resolveClippingJumpPage(*section, *clipping, clippingText, fallbackPage) : fallbackPage;
@@ -6572,7 +6576,7 @@ void EpubReaderActivity::drawClippingHighlights(const Page& page, const int font
   const uint16_t currentPage = canUseStoredRanges ? static_cast<uint16_t>(section->currentPage) : 0;
   const uint16_t currentPageCount = canUseStoredRanges ? static_cast<uint16_t>(section->pageCount) : 0;
   std::string clippingText;
-  clippingText.reserve(CLIPPING_TEXT_MAX);
+  clippingText.reserve(CLIPPING_TEXT_INITIAL_RESERVE);
   for (const Clipping& clipping : CLIPPINGS.getClippings()) {
     if (clipping.spineIndex != static_cast<uint16_t>(currentSpineIndex)) {
       continue;

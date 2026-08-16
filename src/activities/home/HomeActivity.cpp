@@ -1163,7 +1163,10 @@ bool HomeActivity::buildCarouselCacheFile(const std::string& cacheKey, uint64_t 
   uint8_t* frameBuffer = renderer.getFrameBuffer();
   if (!frameBuffer || bookCount <= 0) return false;
 
-  Storage.mkdir("/.crosspoint");
+  if (!Storage.ensureDirectoryExists("/.crosspoint")) {
+    LOG_ERR("HOME", "Failed to recover home cache directory");
+    return false;
+  }
   if (Storage.exists(CAROUSEL_CACHE_TMP_PATH)) {
     Storage.remove(CAROUSEL_CACHE_TMP_PATH);
   }

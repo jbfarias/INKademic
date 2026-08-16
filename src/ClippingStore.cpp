@@ -388,8 +388,10 @@ bool ClippingStore::writeToFile(const std::string* replacementText, const size_t
     LOG_ERR("CLIP", "Refusing to write oversized clipping text");
     return false;
   }
-  Storage.mkdir("/.crosspoint");
-  Storage.mkdir(CLIPPINGS_DIR);
+  if (!Storage.ensureDirectoryExists("/.crosspoint") || !Storage.ensureDirectoryExists(CLIPPINGS_DIR)) {
+    LOG_ERR("CLIP", "Failed to recover clipping directory: %s", CLIPPINGS_DIR);
+    return false;
+  }
 
   const std::string tmpPath = storeFilePath + ".tmp";
   const std::string backupPath = storeFilePath + ".bak";

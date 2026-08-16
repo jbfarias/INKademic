@@ -478,7 +478,10 @@ bool Section::createSectionFile(const ReaderRenderSpec& spec, const std::functio
   // Create cache directory if it doesn't exist
   {
     const auto sectionsDir = epub->getCachePath() + "/sections";
-    Storage.mkdir(sectionsDir.c_str());
+    if (!Storage.ensureDirectoryExists(sectionsDir.c_str())) {
+      LOG_ERR("SCT", "Failed to recover section cache directory: %s", sectionsDir.c_str());
+      return false;
+    }
   }
 
   // Reuse the previously unzipped HTML if we already have it. The unzipped HTML is keyed only on the
@@ -499,7 +502,10 @@ bool Section::createSectionFile(const ReaderRenderSpec& spec, const std::functio
     return false;
   }
   if (!reusedHtml) {
-    Storage.mkdir(htmlDir.c_str());
+    if (!Storage.ensureDirectoryExists(htmlDir.c_str())) {
+      LOG_ERR("SCT", "Failed to recover HTML cache directory: %s", htmlDir.c_str());
+      return false;
+    }
 
     // Retry logic for SD card timing issues
     bool streamed = false;
@@ -872,7 +878,10 @@ bool Section::startBuild(const ReaderRenderSpec& spec, const SectionBuildOptions
 
   {
     const auto sectionsDir = epub->getCachePath() + "/sections";
-    Storage.mkdir(sectionsDir.c_str());
+    if (!Storage.ensureDirectoryExists(sectionsDir.c_str())) {
+      LOG_ERR("SCT", "Failed to recover section cache directory: %s", sectionsDir.c_str());
+      return false;
+    }
   }
 
   const bool reusedHtml = Storage.exists(htmlPath.c_str());
@@ -883,7 +892,10 @@ bool Section::startBuild(const ReaderRenderSpec& spec, const SectionBuildOptions
     }
   };
   if (!reusedHtml) {
-    Storage.mkdir(htmlDir.c_str());
+    if (!Storage.ensureDirectoryExists(htmlDir.c_str())) {
+      LOG_ERR("SCT", "Failed to recover HTML cache directory: %s", htmlDir.c_str());
+      return false;
+    }
 
     bool streamed = false;
     uint32_t fileSize = 0;

@@ -4,16 +4,21 @@
 
 - User-defined annotation tags can be managed from Reader settings and assigned to EPUB clippings or the current page.
 - Tagged pages show a compact indicator in the reader status bar, and clipping exports include the assigned tag.
+- A diagnostic X3/X4 build can mirror the full `LOG_*` application stream to the SD card with UTC timestamps, uptime, reset context, activity transitions, memory/battery heartbeats, and panic reports.
 
 ### Changed
 
 - Saved clipping text now supports up to 4096 bytes and is exported without the previous 2000-byte truncation.
 - Clipping files now include a content-derived document identity so stale annotations are not applied to a different EPUB at the same path.
+- Clipping selection now shows the Up/Down side-button actions on non-touch readers, while ordinary clipping reads reserve only a small initial text buffer and grow up to the existing 4096-byte limit when needed.
+- Persistent stores and reader caches now attempt to recreate missing SD-card directories when a write fails.
 
 ### Fixed
 
 - Forward line-end selection now uses the actual reading-order size instead of an unrelated container size.
 - Oversized clipping selections now report an explicit error instead of being silently truncated.
+- Network activities now stop their local server, DNS, and mDNS resources before disconnecting Wi-Fi or requesting the heap-clearing restart.
+- Choosing a clipping tag no longer leaves the reading-pace timer paused when selection setup exits early.
 
 ## [v1.5.1] - 2026-08-12
 

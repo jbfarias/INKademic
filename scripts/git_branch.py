@@ -4,7 +4,7 @@ PlatformIO pre-build script: inject git info into version defines.
   default:       1.1.0-dev+<branch>  (local development builds)
   production:    1.1.0               (when $CROSSINK_RELEASE_VERSION is set)
   default RC:    1.1.0-rc+<hash>       (when $CROSSINK_RC_HASH is set)
-  test & debug:          1.2.6-<branch>+<5-char-hash>
+  test, debug & diagnostic: 1.2.6-<branch>+<5-char-hash>
   gh_release_rc: 1.1.0-rc+<hash>       (hash from $CROSSINK_RC_HASH in CI,
                                         or from git locally)
 
@@ -156,6 +156,18 @@ def inject_version(env):
             'CROSSINK_SHOW_SLEEP_BUILD_INFO',
         ])
         print(f'CrossInk test build version: {ci_version}{suffix}')
+
+    elif pioenv == 'diagnostic':
+        branch = get_git_branch(project_dir)
+        short_hash = get_git_short_hash(project_dir)
+        ci_version = get_crossink_version(project_dir)
+        suffix = f'-{branch}+{short_hash}'
+        env.Append(CPPDEFINES=[
+            ('CROSSINK_VERSION', f'\\"{ci_version}{suffix}\\"'),
+            ('CROSSINK_BUILD_ENV', '\\"diagnostic\\"'),
+            'CROSSINK_SHOW_SLEEP_BUILD_INFO',
+        ])
+        print(f'CrossInk diagnostic build version: {ci_version}{suffix}')
 
     elif pioenv == 'sticky-debug':
         branch = get_git_branch(project_dir)

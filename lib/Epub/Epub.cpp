@@ -868,11 +868,9 @@ bool Epub::clearCache() const {
 }
 
 void Epub::setupCacheDir() const {
-  if (Storage.exists(cachePath.c_str())) {
-    return;
+  if (!Storage.ensureDirectoryExists(cachePath.c_str())) {
+    LOG_ERR("EPB", "Failed to recover EPUB cache directory: %s", cachePath.c_str());
   }
-
-  Storage.mkdir(cachePath.c_str());
 }
 
 const std::string& Epub::getCachePath() const { return cachePath; }

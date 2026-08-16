@@ -94,6 +94,7 @@ bool HalClock::getTime(uint8_t& hour, uint8_t& minute) const {
 
   _cachedHour = dt.hour;
   _cachedMinute = dt.minute;
+  _cachedSecond = dt.second;
   _cachedYear = dt.year;
   _cachedMonth = dt.month;
   _cachedDay = dt.day;
@@ -132,7 +133,8 @@ bool HalClock::formatTime(char* buf, size_t bufSize, uint8_t utcOffsetQuarterHou
   return true;
 }
 
-bool HalClock::getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute) const {
+bool HalClock::getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute,
+                       uint8_t& second) const {
   if (!_available) return false;
 
   const unsigned long now = millis();
@@ -142,6 +144,7 @@ bool HalClock::getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& ho
     day = _cachedDay;
     hour = _cachedHour;
     minute = _cachedMinute;
+    second = _cachedSecond;
     return true;
   }
 
@@ -154,6 +157,7 @@ bool HalClock::getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& ho
     day = _cachedDay;
     hour = _cachedHour;
     minute = _cachedMinute;
+    second = _cachedSecond;
     return true;
   }
 
@@ -162,6 +166,7 @@ bool HalClock::getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& ho
   _cachedDay = dt.day;
   _cachedHour = dt.hour;
   _cachedMinute = dt.minute;
+  _cachedSecond = dt.second;
   _lastPollMs = now;
   _hasCachedTime = true;
   _hasCachedDate = isValidDate(_cachedYear, _cachedMonth, _cachedDay);
@@ -172,6 +177,7 @@ bool HalClock::getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& ho
   day = _cachedDay;
   hour = _cachedHour;
   minute = _cachedMinute;
+  second = _cachedSecond;
   return true;
 }
 
@@ -180,8 +186,8 @@ bool HalClock::formatDate(char* buf, size_t bufSize, uint8_t utcOffsetQuarterHou
   if (bufSize < 13u) return false;
 
   uint16_t year;
-  uint8_t month, day, hour, minute;
-  if (!getDate(year, month, day, hour, minute)) return false;
+  uint8_t month, day, hour, minute, second;
+  if (!getDate(year, month, day, hour, minute, second)) return false;
 
   if (utcOffsetQuarterHoursBiased > 104) utcOffsetQuarterHoursBiased = 104;
   const int offsetQuarterHours = static_cast<int>(utcOffsetQuarterHoursBiased) - 48;
@@ -251,6 +257,7 @@ bool HalClock::writeDateTimeToRTC(uint16_t year, uint8_t month, uint8_t day, uin
   _lastPollMs = 0;
   _cachedHour = hour;
   _cachedMinute = minute;
+  _cachedSecond = second;
   _cachedYear = year;
   _cachedMonth = month;
   _cachedDay = day;

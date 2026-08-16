@@ -100,35 +100,17 @@ void CrossPointWebServerActivity::onExit() {
 
   state = WebServerActivityState::SHUTTING_DOWN;
 
-  // Every active WiFi exit already reboots to clear network heap
-  // fragmentation. Restart before graceful socket teardown: a stalled browser
-  // can otherwise keep WebSocketsServer::close() retrying writes for seconds.
-  // silentRestart() returns only when deep sleep is already in progress; that
-  // path still needs the explicit cleanup below.
-  if (WiFi.getMode() != WIFI_MODE_NULL) {
-    if (returnBookPath.empty()) {
-      silentRestart();
-    } else {
-      silentRestartToReader();
-    }
-  }
+  const bool hadWifi = WiFi.getMode() != WIFI_MODE_NULL;
 
+  // Release sockets and DNS state before requesting the reboot. The restart
+  // helpers normally do not return, so placing cleanup after them left the
+  // deep-sleep path as the only one that was actually cleaned up.
   stopDnsServer();
-  MDNS.end();
-
-  // Stop local services before disconnecting/restarting WiFi.
   stopWebServer();
   MDNS.end();
-  if (dnsServer) {
-    dnsServer->stop();
-    delete dnsServer;
-    dnsServer = nullptr;
-  }
   delay(50);
 
-  // On the deep-sleep path silentRestart() returns without rebooting, so shut
-  // WiFi down after local services have released their sockets.
-  if (WiFi.getMode() != WIFI_MODE_NULL) {
+  if (hadWifi) {
     if (isApMode) {
       WiFi.softAPdisconnect(true);
     } else {
@@ -138,6 +120,14 @@ void CrossPointWebServerActivity::onExit() {
   }
 
   LOG_DBG("WEBACT", "Free heap at onExit end: %d bytes", ESP.getFreeHeap());
+
+  if (hadWifi) {
+    if (returnBookPath.empty()) {
+      silentRestart();
+    } else {
+      silentRestartToReader();
+    }
+  }
 }
 
 void CrossPointWebServerActivity::onNetworkModeSelected(const NetworkMode mode) {

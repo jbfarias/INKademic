@@ -5,7 +5,10 @@
 #include <ObfuscationUtils.h>
 
 bool PersistableStoreBase::writeDocToFile(const char* path, const JsonDocument& doc) {
-  Storage.mkdir("/.crosspoint");
+  if (!Storage.ensureDirectoryExists("/.crosspoint")) {
+    LOG_ERR("PERSIST", "Failed to recover persistent storage directory");
+    return false;
+  }
   String json;
   serializeJson(doc, json);
   if (!Storage.writeFile(path, json)) {

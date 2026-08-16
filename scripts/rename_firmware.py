@@ -4,6 +4,7 @@ in the same build directory.
 
 Default outputs:
   .pio/build/default/firmware-x3-x4.bin
+  .pio/build/diagnostic/firmware-x3-x4-diagnostic.bin
   .pio/build/x4-pro/firmware-x4-pro.bin
   .pio/build/sticky/firmware-sticky.bin
   .pio/build/x4-pro/firmware-x4-pro.bin
@@ -132,7 +133,8 @@ def rename_firmware(source, target, env):
     build_dir = os.path.dirname(src)
 
     device_type = _get_firmware_device_type(env)
-    default_dst = os.path.join(build_dir, f'firmware-{device_type}.bin')
+    artifact_suffix = '-diagnostic' if str(env['PIOENV']) == 'diagnostic' else ''
+    default_dst = os.path.join(build_dir, f'firmware-{device_type}{artifact_suffix}.bin')
     _copy_artifact(src, default_dst)
 
     if _is_rc_artifact_build(env):

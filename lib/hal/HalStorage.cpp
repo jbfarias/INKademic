@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <cstring>
 #include <new>
 
 #include "HalSpiBus.h"
@@ -123,8 +124,14 @@ HalStorage::~HalStorage() = default;
 // begin() and ready() are only called from setup, no need to acquire mutex for them
 
 bool HalStorage::begin() {
-  HalSpiBus::Lock spiLock;
-  return SDCard.begin();
+  bool ok = false;
+  {
+    HalSpiBus::Lock spiLock;
+    ok = SDCard.begin();
+  }
+  LOG_INF("SD", "Storage begin ready=%d capacity=%llu", ok ? 1 : 0,
+          static_cast<unsigned long long>(SDCard.sdTotalBytes()));
+  return ok;
 }
 
 bool HalStorage::ready() const { return SDCard.ready(); }
@@ -337,6 +344,20 @@ bool HalStorage::openFileForWrite(const char* moduleName, const char* path, HalF
   {
     StorageLock lock;  // ensure thread safety for the duration of this function
     ok = SDCard.openFileForWrite(moduleName, path, fsFile);
+    if (!ok) {
+      // A removable card can lose application-created directories after a
+      // user edits it on a computer. Recover the parent only after the normal
+      // open fails, so healthy writes do not pay an extra directory scan.
+      const char* lastSlash = std::strrchr(path, '/');
+      if (lastSlash && lastSlash != path) {
+        const std::string parent(path, static_cast<size_t>(lastSlash - path));
+        if (SDCard.ensureDirectoryExists(parent.c_str())) {
+          ok = SDCard.openFileForWrite(moduleName, path, fsFile);
+        } else {
+          LOG_ERR(moduleName, "Failed to recover parent directory: %s", parent.c_str());
+        }
+      }
+    }
   }
   if (!ok) {
     return false;

@@ -43,6 +43,32 @@ python3 -m pip install pyserial colorama matplotlib
 python3 scripts/debugging_monitor.py
 ```
 
+## Diagnostic SD build
+
+For private hardware testing, build the X3/X4 diagnostic variant instead of
+the public/default firmware:
+
+```sh
+pio run -e diagnostic
+pio run -e diagnostic --target upload
+pio device monitor
+```
+
+The artifact is `.pio/build/diagnostic/firmware-x3-x4-diagnostic.bin`. After
+the test session, copy these files from the SD card:
+
+- `/.crosspoint/diagnostics/diagnostic.log` — UTC-timestamped `LOG_*` application events;
+- `/.crosspoint/diagnostics/diagnostic.previous.log` — the previous rotated log;
+- `/.crosspoint/diagnostics/last_crash_report.txt` — the panic report from the
+  most recent captured panic reboot;
+- `/crash_report.txt` — the normal CrossInk crash report.
+
+The logger uses a bounded RAM queue and writes from the main loop, so it does
+not perform SD I/O inside `LOG_*` calls. It is best-effort: a sudden power loss
+or a failure before the SD card is mounted can still prevent the newest lines
+from being saved. Do not use this build for public distribution or collect
+personal book contents when sharing its logs.
+
 ## Useful bug report contents
 
 - Firmware version and build environment

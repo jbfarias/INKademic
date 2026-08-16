@@ -339,6 +339,7 @@ static void restartWithSilentToken() {
 #ifdef SIMULATOR
   SimulatorLifecycle::setSilentRebootToken(silentRebootMagic, silentRebootTarget, silentRebootPayload);
 #endif
+  diagnosticLogFlush();
   ESP.restart();
 }
 
@@ -965,6 +966,7 @@ void enterDeepSleep(bool fromTimeout) {
   display.deepSleep();
   mirrorWakeShortPressToNvs();  // next boot's wake-hold check reads this pre-SD
   LOG_DBG("MAIN", "Entering deep sleep");
+  diagnosticLogFlush();
 
   powerManager.startDeepSleep(gpio);
 }
@@ -1162,6 +1164,12 @@ void setup() {
     activityManager.goToFullScreenMessage("SD card error", EpdFontFamily::BOLD);
     return;
   }
+  diagnosticLogBegin();
+#ifdef CROSSINK_ENABLE_SD_DIAGNOSTICS
+  LOG_INF("BOOT", "Diagnostic session version=%s device=%s reset=%d(%s) wake=%d(%s) panic=%d", CROSSINK_VERSION,
+          CROSSINK_FIRMWARE_DEVICE_TYPE, static_cast<int>(rawResetReason), resetReasonName(rawResetReason),
+          static_cast<int>(rawWakeupCause), wakeupCauseName(rawWakeupCause), rebootedFromPanic ? 1 : 0);
+#endif
   logBootHeap("storage ready");
 
   HalSystem::checkPanic();
@@ -1413,6 +1421,9 @@ void loop() {
 #ifdef SIMULATOR
   simulatorHomeKeyInput.update();
 #endif
+  if (!activityManager.requiresExclusiveStorageLoop()) {
+    diagnosticLogService();
+  }
   if (activityManager.requiresExclusiveStorageLoop()) {
     // Keep the serial endpoint responsive so Inky receives ERR:not_on_home,
     // while every filesystem/UI/global path remains suspended by the activity.
@@ -1429,8 +1440,12 @@ void loop() {
 
   renderer.setFadingFix(SETTINGS.fadingFix);
 
-  if (Serial && millis() - lastMemPrint >= 10000) {
+  if ((Serial || diagnosticLogEnabled()) && millis() - lastMemPrint >= 10000) {
     logMemoryStats("Periodic");
+    LOG_DBG("HEART", "activity home=%d reader=%d exclusive=%d quickLock=%d battery=%u",
+            activityManager.isHomeActivity(), activityManager.isReaderActivity(),
+            activityManager.requiresExclusiveStorageLoop(), buttonShortcutController.isQuickLocked(),
+            static_cast<unsigned>(powerManager.getBatteryPercentage()));
     lastMemPrint = millis();
   }
 

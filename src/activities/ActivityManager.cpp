@@ -152,6 +152,7 @@ void ActivityManager::loop() {
       } else {
         currentActivity = std::move(stackActivities.back());
         stackActivities.pop_back();
+        LOG_DBG("ACT", "Resume activity=%s after pop", currentActivity->name.c_str());
 
         if (openReaderMenuAfterPop) {
           openReaderMenuAfterPop = false;
@@ -204,8 +205,11 @@ void ActivityManager::loop() {
         // Move current activity to stack
         stackActivities.push_back(std::move(currentActivity));
       }
+      const PendingAction launchedAction = pendingAction;
       pendingAction = PendingAction::None;
       currentActivity = std::move(pendingActivity);
+      LOG_DBG("ACT", "Enter activity=%s action=%s", currentActivity->name.c_str(),
+              launchedAction == PendingAction::Push ? "push" : "replace");
 
       lock.unlock();  // onEnter may acquire its own lock
       currentActivity->onEnter();

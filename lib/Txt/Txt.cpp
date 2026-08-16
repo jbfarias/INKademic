@@ -48,11 +48,12 @@ std::string Txt::getTitle() const {
 }
 
 void Txt::setupCacheDir() const {
-  if (!Storage.exists(cacheBasePath.c_str())) {
-    Storage.mkdir(cacheBasePath.c_str());
+  if (!Storage.ensureDirectoryExists(cacheBasePath.c_str())) {
+    LOG_ERR("TXT", "Failed to recover TXT cache directory: %s", cacheBasePath.c_str());
+    return;
   }
-  if (!Storage.exists(cachePath.c_str())) {
-    Storage.mkdir(cachePath.c_str());
+  if (!Storage.ensureDirectoryExists(cachePath.c_str())) {
+    LOG_ERR("TXT", "Failed to recover TXT book cache directory: %s", cachePath.c_str());
   }
 }
 

@@ -3,6 +3,14 @@
 #include <Arduino.h>
 #include <BoardConfig.h>
 
+#ifdef CROSSINK_ENABLE_SD_DIAGNOSTICS
+// Keep the low-level SdFat type visible from the public logging header so
+// PlatformIO's library dependency finder associates SdFat's include path
+// with the Logging library. Do not include SDCardManager here: it would pull
+// in the FsFile class, which conflicts with HalStorage's FsFile facade.
+#include <common/FsApiConstants.h>
+#endif
+
 #include <string>
 
 /*
@@ -64,6 +72,24 @@ void clearLastLogs();
 // logMessages is untrusted garbage. Callers should call clearLastLogs() when
 // this returns true so getLastLogs() does not dump corrupt data into crash reports.
 bool sanitizeLogHead();
+
+// The diagnostic build mirrors the normal log stream to a bounded queue and
+// drains it to the SD card from the main loop. Keeping the SD write out of
+// logPrintf() is important: some storage error paths log while holding the
+// storage mutex, so a synchronous write there could deadlock.
+#ifdef CROSSINK_ENABLE_SD_DIAGNOSTICS
+void diagnosticLogBegin();
+void diagnosticLogService();
+void diagnosticLogFlush();
+void diagnosticLogWriteCrashReport(const char* report);
+bool diagnosticLogEnabled();
+#else
+inline void diagnosticLogBegin() {}
+inline void diagnosticLogService() {}
+inline void diagnosticLogFlush() {}
+inline void diagnosticLogWriteCrashReport(const char*) {}
+inline bool diagnosticLogEnabled() { return false; }
+#endif
 
 class MySerialImpl : public Print {
  public:

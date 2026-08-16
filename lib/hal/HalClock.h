@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Rtc.h>
+#include "FreeInkRtc.h"
 
 class HalClock;
 extern HalClock halClock;  // Singleton
@@ -11,6 +11,7 @@ class HalClock {
   mutable Rtc _sdkRtc;
   mutable uint8_t _cachedHour = 0;
   mutable uint8_t _cachedMinute = 0;
+  mutable uint8_t _cachedSecond = 0;
   mutable uint16_t _cachedYear = 2000;
   mutable uint8_t _cachedMonth = 1;
   mutable uint8_t _cachedDay = 1;
@@ -54,7 +55,14 @@ class HalClock {
   // Returns the raw RTC date/time before any user-configured timezone offset is applied.
   // The RTC is synced in UTC, so callers that need wall-clock local time should apply SETTINGS.clockUtcOffsetQ.
   bool getDateTime(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute) const {
-    return getDate(year, month, day, hour, minute);
+    uint8_t second = 0;
+    return getDate(year, month, day, hour, minute, second);
+  }
+
+  // Same as the five-field overload, including seconds for diagnostic logs.
+  bool getDateTime(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute,
+                  uint8_t& second) const {
+    return getDate(year, month, day, hour, minute, second);
   }
 
   // Format date into a caller-provided buffer using the requested display format.
@@ -75,7 +83,7 @@ class HalClock {
   bool syncSystemTimeFromNTP();
 
  private:
-  bool getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute) const;
+  bool getDate(uint16_t& year, uint8_t& month, uint8_t& day, uint8_t& hour, uint8_t& minute, uint8_t& second) const;
   bool writeDateTimeToRTC(uint16_t year, uint8_t month, uint8_t day, uint8_t weekday, uint8_t hour, uint8_t minute,
                           uint8_t second);
 };

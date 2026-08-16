@@ -199,7 +199,11 @@ bool restorePreservedFiles(const std::string& cachePath, const std::vector<Resol
       continue;
     }
 
-    Storage.mkdir(cachePath.c_str());
+    if (!Storage.ensureDirectoryExists(cachePath.c_str())) {
+      LOG_ERR("BookCache", "Failed to recover cache directory: %s", cachePath.c_str());
+      ok = false;
+      continue;
+    }
     const std::string finalPath = cachePath + "/" + files[i].name;
     if (Storage.exists(finalPath.c_str())) {
       Storage.remove(finalPath.c_str());

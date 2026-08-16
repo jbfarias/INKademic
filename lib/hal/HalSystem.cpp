@@ -165,6 +165,10 @@ void checkPanic() {
     } else {
       LOG_ERR("SYS", "Failed to open crash_report.txt for writing");
     }
+    // The diagnostic build keeps a separate, timestamped copy next to the
+    // normal crash report. This is intentionally best-effort: the panic
+    // handler itself must remain independent of the SD filesystem.
+    diagnosticLogWriteCrashReport(panicInfo.c_str());
   }
 }
 

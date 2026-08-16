@@ -9,6 +9,9 @@ inline constexpr size_t CLIPPING_CHAPTER_TITLE_MAX = 48;
 // Keep the full academic quote for ordinary selections, but reject anything
 // larger than the bounded on-device record instead of silently truncating it.
 inline constexpr size_t CLIPPING_TEXT_MAX = 4096;
+// Keep normal reader paths cheap; std::string grows on demand up to the
+// bounded CLIPPING_TEXT_MAX limit when a long academic quote is actually used.
+inline constexpr size_t CLIPPING_TEXT_INITIAL_RESERVE = 512;
 inline constexpr uint16_t CLIPPING_MAX_PER_BOOK = 256;
 inline constexpr uint16_t CLIPPING_MAX_PAGE_MATCHES = 16;
 

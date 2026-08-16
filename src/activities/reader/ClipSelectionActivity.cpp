@@ -314,6 +314,10 @@ void ClipSelectionActivity::render(RenderLock&&) {
   const auto confirmLabel = startMarkIdx == -1 ? tr(STR_SELECT) : tr(STR_DONE);
   const auto labels = mappedInput.mapLabels(tr(STR_BACK), confirmLabel, tr(STR_DIR_LEFT), tr(STR_DIR_RIGHT));
   GUI.drawButtonHints(renderer, labels.btn1, labels.btn2, labels.btn3, labels.btn4);
+  // The front buttons move the selection cursor horizontally; the physical
+  // side buttons move between lines. Keep that second control layer visible on
+  // non-touch readers so selection does not depend on memorizing the mapping.
+  GUI.drawSideButtonHints(renderer, tr(STR_DIR_UP), tr(STR_DIR_DOWN));
 
   renderer.displayBuffer();
 }

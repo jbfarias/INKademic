@@ -225,17 +225,9 @@ bool Xtc::clearCache() const {
 }
 
 void Xtc::setupCacheDir() const {
-  if (Storage.exists(cachePath.c_str())) {
-    return;
+  if (!Storage.ensureDirectoryExists(cachePath.c_str())) {
+    LOG_ERR("XTC", "Failed to recover XTC cache directory: %s", cachePath.c_str());
   }
-
-  // Create directories recursively
-  for (size_t i = 1; i < cachePath.length(); i++) {
-    if (cachePath[i] == '/') {
-      Storage.mkdir(cachePath.substr(0, i).c_str());
-    }
-  }
-  Storage.mkdir(cachePath.c_str());
 }
 
 std::string Xtc::getTitle() const {

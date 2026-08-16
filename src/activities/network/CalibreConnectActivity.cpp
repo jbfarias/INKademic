@@ -55,9 +55,11 @@ void CalibreConnectActivity::onEnter() {
 void CalibreConnectActivity::onExit() {
   Activity::onExit();
 
+  const bool hadWifi = WiFi.getMode() != WIFI_MODE_NULL;
+  stopWebServer();
   MDNS.end();
 
-  if (WiFi.getMode() != WIFI_MODE_NULL) {
+  if (hadWifi) {
     WiFi.disconnect(false);
     delay(30);
     if (returnToReader) {

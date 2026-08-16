@@ -157,8 +157,10 @@ bool PageTagStore::readFromFile() {
 }
 
 bool PageTagStore::writeToFile() const {
-  Storage.mkdir("/.crosspoint");
-  Storage.mkdir(PAGE_TAGS_DIR);
+  if (!Storage.ensureDirectoryExists("/.crosspoint") || !Storage.ensureDirectoryExists(PAGE_TAGS_DIR)) {
+    LOG_ERR("TAGS", "Failed to recover page tag directory: %s", PAGE_TAGS_DIR);
+    return false;
+  }
 
   const std::string tmpPath = storeFilePath + ".tmp";
   const std::string backupPath = storeFilePath + ".bak";

@@ -20,7 +20,9 @@ std::string buildReadFolderDestination(const std::string& srcPath) {
   const size_t lastSlash = srcPath.rfind('/');
   const std::string filename = (lastSlash != std::string::npos) ? srcPath.substr(lastSlash + 1) : srcPath;
 
-  Storage.mkdir(READ_FOLDER);
+  if (!Storage.ensureDirectoryExists(READ_FOLDER)) {
+    LOG_ERR("BOOK", "Failed to recover read folder: %s", READ_FOLDER);
+  }
   std::string dstPath = std::string(READ_FOLDER) + "/" + filename;
   if (!Storage.exists(dstPath.c_str())) {
     return dstPath;

@@ -88,7 +88,10 @@ bool AnnotationTagStore::load() {
 }
 
 bool AnnotationTagStore::save() const {
-  Storage.mkdir("/.crosspoint");
+  if (!Storage.ensureDirectoryExists("/.crosspoint")) {
+    LOG_ERR("TAGS", "Failed to recover annotation tag directory");
+    return false;
+  }
 
   const std::string tmpPath = std::string(FILE_PATH) + ".tmp";
   const std::string backupPath = std::string(FILE_PATH) + ".bak";

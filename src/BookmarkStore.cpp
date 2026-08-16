@@ -524,7 +524,10 @@ bool BookmarkStore::readFromFile(const std::string& path, std::vector<Bookmark>&
 }
 
 bool BookmarkStore::writeToFile() const {
-  Storage.mkdir(BOOKMARKS_DIR);
+  if (!Storage.ensureDirectoryExists(BOOKMARKS_DIR)) {
+    LOG_ERR("BKS", "Failed to recover bookmark directory: %s", BOOKMARKS_DIR);
+    return false;
+  }
 
   FsFile f;
   if (!Storage.openFileForWrite("BKS", storeFilePath, f)) {

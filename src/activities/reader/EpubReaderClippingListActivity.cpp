@@ -175,7 +175,7 @@ void EpubReaderClippingListActivity::onEnter() {
   applySharedUiTheme(app, uiTarget);
   app.on(ACTION_ROW, &EpubReaderClippingListActivity::onRowEvent, this);
   app.setScreen(&EpubReaderClippingListActivity::listScreen, this);
-  detailText.reserve(CLIPPING_TEXT_MAX);
+  detailText.reserve(CLIPPING_TEXT_INITIAL_RESERVE);
   detailLines.reserve(32);
   uiItems.resize(CLIPPINGS.clippingCount());
   requestUpdate();
@@ -232,7 +232,7 @@ void EpubReaderClippingListActivity::openSelectedDetail() {
   if (selectedIndex < 0 || selectedIndex >= static_cast<int>(CLIPPINGS.clippingCount())) return;
 
   std::string text;
-  text.reserve(CLIPPING_TEXT_MAX);
+  text.reserve(CLIPPING_TEXT_INITIAL_RESERVE);
   if (!CLIPPINGS.readClippingText(static_cast<size_t>(selectedIndex), text)) {
     text.clear();
   }
