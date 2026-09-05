@@ -2,47 +2,47 @@
   "schema_version": 1,
   "releases": [
     {
-      "id": "rc-1.7.0-rc.2-x3-x4",
+      "id": "rc-1.7.1-rc.1-x3-x4",
       "channel": "rc",
-      "name": "1.7.0-rc.2",
-      "version": "1.7.0-rc.2",
+      "name": "1.7.1-rc.1",
+      "version": "1.7.1-rc.1",
       "variant": "x3-x4",
       "released_at": "2026-09-05T00:00:00Z",
-      "notes": "INKademic v1.7.0-rc.2 release candidate: academic annotations in all device builds, X4 Pro compatibility, exports, and memory/efficiency improvements.",
-      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-x3-x4-v1.7.0-rc.2.bin",
-      "firmware_sha256": "f0a412a16a375ba5edc116a0f8655bdd4a8a180d180ca2f87184372f4e8eb0d3",
-      "size": 6318128,
+      "notes": "INKademic v1.7.1-rc.1: watchdog-safe updates, scoped Xteink Unlocker OTA compatibility, validated X4 Pro recovery loader, and academic annotations in all device builds.",
+      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.1-rc.1/firmware-x3-x4-v1.7.1-rc.1.bin",
+      "firmware_sha256": "1a41b0a9640e1a59c773e6d8749028562f0511ff920fa0e864d6d719d72d8fd0",
+      "size": 6211536,
       "supported_devices": [
         "x4",
         "x3"
       ]
     },
     {
-      "id": "rc-1.7.0-rc.2-sticky",
+      "id": "rc-1.7.1-rc.1-sticky",
       "channel": "rc",
-      "name": "1.7.0-rc.2",
-      "version": "1.7.0-rc.2",
+      "name": "1.7.1-rc.1",
+      "version": "1.7.1-rc.1",
       "variant": "sticky",
       "released_at": "2026-09-05T00:00:00Z",
-      "notes": "INKademic v1.7.0-rc.2 release candidate: academic annotations in all device builds, X4 Pro compatibility, exports, and memory/efficiency improvements.",
-      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-sticky-v1.7.0-rc.2.bin",
-      "firmware_sha256": "e74ebece2593f7a37e63083d752d18c2a03cf765067c3f88dca89660cca03b5c",
-      "size": 6113664,
+      "notes": "INKademic v1.7.1-rc.1: watchdog-safe updates, scoped Xteink Unlocker OTA compatibility, validated X4 Pro recovery loader, and academic annotations in all device builds.",
+      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.1-rc.1/firmware-sticky-v1.7.1-rc.1.bin",
+      "firmware_sha256": "dac9327f50769234c5fbd1d7de9bbfc3cef54d6b09422370b4d3eae1bd6762e3",
+      "size": 6009312,
       "supported_devices": [
         "sticky"
       ]
     },
     {
-      "id": "rc-1.7.0-rc.2-x4-pro",
+      "id": "rc-1.7.1-rc.1-x4-pro",
       "channel": "rc",
-      "name": "1.7.0-rc.2",
-      "version": "1.7.0-rc.2",
+      "name": "1.7.1-rc.1",
+      "version": "1.7.1-rc.1",
       "variant": "x4-pro",
       "released_at": "2026-09-05T00:00:00Z",
-      "notes": "INKademic v1.7.0-rc.2 release candidate: academic annotations in all device builds, X4 Pro compatibility, exports, and memory/efficiency improvements.",
-      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-x4-pro-v1.7.0-rc.2.bin",
-      "firmware_sha256": "58c4fe7ff8c40487717bb1a87cfbffcb85e3afd50be6159e3d65b6c11e8e1e7f",
-      "size": 6211552,
+      "notes": "INKademic v1.7.1-rc.1: watchdog-safe updates, scoped Xteink Unlocker OTA compatibility, validated X4 Pro recovery loader, and academic annotations in all device builds.",
+      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.1-rc.1/firmware-x4-pro-v1.7.1-rc.1.bin",
+      "firmware_sha256": "8d1d05321efb88dfecd657e4b756cc8c290dbd973627eb3b9ad590269259d292",
+      "size": 6117184,
       "supported_devices": [
         "x4-pro"
       ]

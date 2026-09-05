@@ -2,6 +2,30 @@
 
 ### Fixed
 
+- Made release-candidate version comparison understand numbered `-rc.N`
+  suffixes so a later RC is not treated as the same build.
+- Added a narrowly scoped X4 Pro OTA retry for the Xteink Unlocker bridge. The
+  first request still validates the normal GitHub hostname; only a failed
+  request on the Unlocker SSID retries with the bridge certificate name check
+  relaxed while retaining the system CA bundle and firmware hash validation.
+- Reduced SD firmware erase windows to one 4 KiB sector and services the task
+  watchdog before and after every erase/write operation, including the minimal
+  recovery loader.
+
+## [1.7.1-rc.1] - 2026-09-05
+
+This RC replaces the earlier `1.7.0-rc.2` image after the X4 Pro watchdog and
+Unlocker TLS failures found during installation testing.
+
+### Added
+
+- Added a minimal X4 Pro SD recovery loader target that retains full image
+  validation while omitting the reader, UI, network, USB-MSC and log-capture
+  stacks. It writes only the inactive factory-compatible OTA slot after checking
+  the ESP image structure, chip ID, XOR checksum, SHA-256 trailer and size.
+
+### Fixed
+
 - Exposed **Restore frontlight on wake** on X4 Pro and its simulator, using the
   same persisted setting already supported by the other frontlit profiles.
 - Made X4 Pro side keys work as previous/next navigation in settings, lists,

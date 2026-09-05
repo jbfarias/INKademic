@@ -21,11 +21,12 @@ namespace {
 constexpr uint8_t ESP_IMAGE_MAGIC = 0xE9;
 constexpr size_t MIN_FIRMWARE_SIZE = 64 * 1024;
 constexpr size_t SEC = SPI_FLASH_SEC_SIZE;  // 4 KiB
-// Keep individual erase calls short enough that even a slow X4 Pro flash chip
-// cannot starve the task watchdog. The flash API accepts sector-aligned ranges;
-// 16 KiB is still efficient while leaving room to service the watchdog between
-// calls.
-constexpr size_t BLK = 16 * 1024;
+// Keep each erase call to one sector. The previous 16 KiB window was already
+// safer than the old up-front erase, but an X4 Pro can still spend long enough
+// inside a multi-sector flash call for the task watchdog to fire. Sector-sized
+// writes cost more calls but leave a bounded interval between every erase and
+// watchdog service point.
+constexpr size_t BLK = SEC;
 constexpr size_t CHUNK = 4096;
 constexpr size_t SHA_TRAILER = 32;
 constexpr uint8_t CHECKSUM_SEED = 0xEF;
@@ -370,6 +371,7 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
       erasedUpto = streamPos + eraseLen;
       esp_task_wdt_reset();
       yield();
+      delay(1);
     }
 
     const size_t want = std::min<size_t>(CHUNK, firmwareSize - streamPos);

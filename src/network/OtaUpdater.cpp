@@ -24,6 +24,7 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback, void*, s
 #include "mbedtls/sha256.h"
 #include "network/HttpDownloader.h"
 #include "network/WifiPowerSaveGuard.h"
+#include "WiFi.h"
 
 #if defined(HAVE_ED25519) && defined(HAVE_ED25519_VERIFY) && defined(HAVE_ED25519_KEY_IMPORT)
 #include <wolfssl/wolfcrypt/ed25519.h>
@@ -31,7 +32,7 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback, void*, s
 
 namespace {
 #ifndef INKADEMIC_OTA_RELEASE_URL
-#define INKADEMIC_OTA_RELEASE_URL "https://api.github.com/repos/uxjulia/CrossInk/releases/latest"
+#define INKADEMIC_OTA_RELEASE_URL "https://api.github.com/repos/jbfarias/INKacademic/releases/latest"
 #endif
 
 constexpr char latestReleaseUrl[] = INKADEMIC_OTA_RELEASE_URL;
@@ -53,6 +54,7 @@ struct ParsedVersion {
   int segments[VERSION_SEGMENT_COUNT] = {0, 0, 0, 0};
   bool valid = false;
   bool releaseCandidate = false;
+  int releaseCandidateNumber = 0;
 };
 
 bool isDigit(const char c) { return c >= '0' && c <= '9'; }
@@ -71,6 +73,24 @@ bool containsRcMarker(const char* version) {
     }
   }
   return false;
+}
+
+int parseReleaseCandidateNumber(const char* version) {
+  if (version == nullptr) return 0;
+  for (const char* p = version; p[0] != '\0' && p[1] != '\0' && p[2] != '\0'; ++p) {
+    if (p[0] != '-' || (p[1] != 'r' && p[1] != 'R') || (p[2] != 'c' && p[2] != 'C')) continue;
+    p += 3;
+    if (*p == '.') ++p;
+    int value = 0;
+    bool foundDigit = false;
+    while (isDigit(*p)) {
+      foundDigit = true;
+      value = value * 10 + (*p - '0');
+      ++p;
+    }
+    return foundDigit ? value : 0;
+  }
+  return 0;
 }
 
 ParsedVersion parseVersion(const char* version) {
@@ -98,6 +118,7 @@ ParsedVersion parseVersion(const char* version) {
 
   parsed.valid = true;
   parsed.releaseCandidate = containsRcMarker(version);
+  parsed.releaseCandidateNumber = parseReleaseCandidateNumber(version);
   return parsed;
 }
 
@@ -112,8 +133,35 @@ int compareVersions(const char* latestVersion, const char* currentVersion) {
     }
   }
 
-  if (current.releaseCandidate && !latest.releaseCandidate) return 1;
+  if (latest.releaseCandidate != current.releaseCandidate) return current.releaseCandidate ? -1 : 1;
+  if (latest.releaseCandidate && latest.releaseCandidateNumber != current.releaseCandidateNumber) {
+    return latest.releaseCandidateNumber > current.releaseCandidateNumber ? 1 : -1;
+  }
   return 0;
+}
+
+bool isGitHubReleaseEndpoint(const char* url) {
+  return url != nullptr && strncmp(url, "https://api.github.com/", sizeof("https://api.github.com/") - 1) == 0;
+}
+
+bool isUnlockerNetwork() {
+#if defined(INKADEMIC_ENABLE_UNLOCKER_OTA_COMPAT) && INKADEMIC_ENABLE_UNLOCKER_OTA_COMPAT
+  const String ssid = WiFi.SSID();
+  return ssid.equalsIgnoreCase("crosspoint") || ssid.equalsIgnoreCase("Xteink Unlocker");
+#else
+  return false;
+#endif
+}
+
+bool shouldRetryWithUnlockerCertificate() {
+#if defined(INKADEMIC_ENABLE_UNLOCKER_OTA_COMPAT) && INKADEMIC_ENABLE_UNLOCKER_OTA_COMPAT
+  // The Unlocker deliberately answers api.github.com with a trusted bridge
+  // certificate. Keep ordinary Internet OTA strict; only permit the fallback
+  // on the Unlocker SSID and only for that exact API endpoint.
+  return isGitHubReleaseEndpoint(latestReleaseUrl) && isUnlockerNetwork();
+#else
+  return false;
+#endif
 }
 
 bool startsWith(const char* value, const char* prefix) {
@@ -264,47 +312,52 @@ OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {
   esp_err_t esp_err;
   ReleaseJsonParser releaseParser(isMatchingFirmwareAssetName, isMatchingSignatureAssetName);
 
-  esp_http_client_config_t client_config = {
-      .url = latestReleaseUrl,
-      .event_handler = release_manifest_event_handler,
-      // 4096 holds the API response headers; the 32KB body streams through the
-      // parser in chunks so RX needn't be larger. TX only carries our GET.
-      // Both free before installUpdate, so smaller leaves it less fragmentation.
-      .buffer_size = 4096,
-      .buffer_size_tx = 1024,
-      .user_data = &releaseParser,
-      .crt_bundle_attach = esp_crt_bundle_attach,
-      .keep_alive_enable = true,
+  const auto fetchManifest = [&](const bool allowUnlockerCertificate) -> esp_err_t {
+    releaseParser.reset();
+    totalBytesReceived = 0;
+
+    esp_http_client_config_t client_config = {
+        .url = latestReleaseUrl,
+        .event_handler = release_manifest_event_handler,
+        // 4096 holds the API response headers; the body streams through the
+        // parser in chunks so RX needn't be larger. Both buffers are released
+        // before installUpdate to reduce fragmentation.
+        .buffer_size = 4096,
+        .buffer_size_tx = 1024,
+        .user_data = &releaseParser,
+        .crt_bundle_attach = esp_crt_bundle_attach,
+        .keep_alive_enable = true,
+    };
+    // Keep CA validation enabled. This only relaxes the certificate-name check
+    // for the local Unlocker bridge, whose trusted certificate is for
+    // unlocker.crosspointreader.com while DNS maps api.github.com locally.
+    client_config.skip_cert_common_name_check = allowUnlockerCertificate;
+
+    esp_http_client_handle_t client_handle = esp_http_client_init(&client_config);
+    if (!client_handle) {
+      LOG_ERR("OTA", "HTTP Client Handle Failed");
+      return ESP_ERR_NO_MEM;
+    }
+
+    esp_err_t result = esp_http_client_set_header(client_handle, "User-Agent", "INKademic-ESP32-" INKADEMIC_VERSION);
+    if (result == ESP_OK) result = esp_http_client_perform(client_handle);
+    if (result != ESP_OK) LOG_ERR("OTA", "manifest request failed: %s", esp_err_to_name(result));
+
+    const esp_err_t cleanupResult = esp_http_client_cleanup(client_handle);
+    if (result == ESP_OK && cleanupResult != ESP_OK) {
+      LOG_ERR("OTA", "manifest cleanup failed: %s", esp_err_to_name(cleanupResult));
+      return cleanupResult;
+    }
+    return result;
   };
 
-  totalBytesReceived = 0;
   LOG_DBG("OTA", "Checking for update (current: %s)", INKADEMIC_VERSION);
-
-  esp_http_client_handle_t client_handle = esp_http_client_init(&client_config);
-  if (!client_handle) {
-    LOG_ERR("OTA", "HTTP Client Handle Failed");
-    return INTERNAL_UPDATE_ERROR;
+  esp_err = fetchManifest(false);
+  if (esp_err != ESP_OK && shouldRetryWithUnlockerCertificate()) {
+    LOG_INF("OTA", "Retrying manifest through trusted Xteink Unlocker bridge");
+    esp_err = fetchManifest(true);
   }
-
-  esp_err = esp_http_client_set_header(client_handle, "User-Agent", "INKademic-ESP32-" INKADEMIC_VERSION);
-  if (esp_err != ESP_OK) {
-    LOG_ERR("OTA", "esp_http_client_set_header Failed : %s", esp_err_to_name(esp_err));
-    esp_http_client_cleanup(client_handle);
-    return INTERNAL_UPDATE_ERROR;
-  }
-
-  esp_err = esp_http_client_perform(client_handle);
-  if (esp_err != ESP_OK) {
-    LOG_ERR("OTA", "esp_http_client_perform Failed : %s", esp_err_to_name(esp_err));
-    esp_http_client_cleanup(client_handle);
-    return HTTP_ERROR;
-  }
-
-  esp_err = esp_http_client_cleanup(client_handle);
-  if (esp_err != ESP_OK) {
-    LOG_ERR("OTA", "esp_http_client_cleanup Failed : %s", esp_err_to_name(esp_err));
-    return INTERNAL_UPDATE_ERROR;
-  }
+  if (esp_err != ESP_OK) return HTTP_ERROR;
 
   LOG_DBG("OTA", "Response received: %zu bytes total", totalBytesReceived);
   LOG_DBG("OTA", "Parser results: tag=%s firmware=%s signature=%s", releaseParser.foundTag() ? "yes" : "no",
