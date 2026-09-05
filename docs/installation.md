@@ -20,8 +20,11 @@ nav_order: 2
 3. Choose the firmware option you want to install.
 4. Click on the "Flash Firmware" button
 
-X4 Pro uses the ESP32-S3 firmware option. Keep the reader connected during the
-download-mode and flashing steps shown by Inky.
+X4 Pro uses the ESP32-S3 firmware option. Its physical data connection is the
+four-contact magnetic pogo adapter; it does not have the same USB-C data port
+as the X4. A charge-only magnetic cable will not create a serial port.
+Keep the reader connected during the download-mode and flashing steps shown by
+Inky.
 
 ## USB Drive
 
@@ -54,8 +57,9 @@ interface, start the ESP32-S3 ROM download mode before flashing:
 
 1. Disconnect the USB cable.
 2. Press and hold the **left side button** (the boot/GPIO0 button).
-3. Connect a known-good data USB-C cable directly to the computer. If needed,
-   press and release Reset while continuing to hold the left button.
+3. Connect a known-good **four-contact data** magnetic pogo adapter directly to
+   the computer. If needed, press and release Reset while continuing to hold
+   the left button.
 4. Release the left button when macOS shows `/dev/cu.usbmodem*` (or Linux shows
    a new `/dev/ttyACM*` device).
 5. Use the web installer, selecting **X4 Pro / ESP32-S3**, or use the command
@@ -75,7 +79,7 @@ Install `esptool`:
 pip3 install esptool
 ```
 
-Download the `firmware-*.bin` file from the [INKademic releases page](https://github.com/jbfarias/INKademic/releases), then connect your device with USB-C.
+Download the `firmware-*.bin` file from the [INKademic releases page](https://github.com/jbfarias/INKademic/releases), then connect the X4 Pro through its four-contact magnetic pogo data adapter.
 
 Find the device port:
 
