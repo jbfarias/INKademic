@@ -6,9 +6,9 @@ Release candidate dated 5 September 2026.
 
 | Device | File | Size | SHA-256 |
 | --- | --- | ---: | --- |
-| X3 / X4 | `firmware-x3-x4-v1.7.0-rc.2.bin` | 6,322,608 bytes | `973e41ce47aa37e1b118ef536eae07044f442592177df76962c4ea810caa4c2a` |
-| X4 Pro | `firmware-x4-pro-v1.7.0-rc.2.bin` | 6,254,048 bytes | `89b6c58beee6a199b025a14f6ed30b4d49287923be0709e3aa4969774a812afc` |
-| Sticky | `firmware-sticky-v1.7.0-rc.2.bin` | 6,117,904 bytes | `189e66bf2c8f0f991f3309f262def7f75d972b8732680e8a325de6a1cc9b5bc0` |
+| X3 / X4 | `firmware-x3-x4-v1.7.0-rc.2.bin` | 6,209,968 bytes | `35415ad151d60cde8069a72edd76c479352610c6ab8064d4cfdd25af1d07fe6a` |
+| X4 Pro | `firmware-x4-pro-v1.7.0-rc.2.bin` | 6,115,728 bytes | `c955751f3a5df702a21f01ac1d96a48df4fd4d8bbf058d1c83edbadd116b87f1` |
+| Sticky | `firmware-sticky-v1.7.0-rc.2.bin` | 6,008,048 bytes | `f7daca20b3751d6574a4768fbbf0a74b4495e78dfb0439ea865b5fe090d3ee7b` |
 
 ## Included improvements
 
@@ -27,7 +27,7 @@ Release candidate dated 5 September 2026.
 - Applied the new INKademic logo in the web companion pages and firmware web portal.
 - Exposed the X4 Pro “Restore light on wake” setting, persisted the live frontlight state before sleep, and parked/released the PWM driver safely around deep sleep.
 - Hardened SD firmware installation on X4 Pro: the installer now feeds the task watchdog for every transfer block and pauses persistent log capture while the OTA partition is being erased and written.
-- Corrected the X4 Pro portrait logo orientation and kept bounded diagnostic capture available after reboot at `/inkademic-runtime.log`.
+- Corrected the X4 Pro portrait logo orientation. All RC2 hardware profiles disable serial and persistent SD log capture to keep firmware installation free of auxiliary I/O.
 
 ## Forks and references
 
@@ -39,9 +39,9 @@ These projects are references for selected features and compatibility decisions;
 
 - X3/X4, Sticky, and X4 Pro production builds completed successfully with OTA-size checks.
 - Simulator builds for X3/X4 and X4 Pro completed successfully and reported `INKademic version 1.7.0-rc.2`.
-- The X4 Pro production image uses 95.4% of the OTA application partition, leaving 299,552 bytes free.
-- The default image leaves 230,992 bytes in its OTA application partition; Sticky leaves 435,696 bytes.
-- X4 Pro and X3/X4 simulator builds completed successfully; the X4 Pro smoke test passed with three page turns.
+- The X4 Pro production image uses 93.3% of the OTA application partition, leaving 437,872 bytes free.
+- The default image uses 94.8% of its OTA application partition, leaving 343,632 bytes free; Sticky uses 91.7%, leaving 545,552 bytes free.
+- X4 Pro and X3/X4 simulator builds completed successfully; the X4 Pro smoke test passed with three page turns. Sticky production compilation was resumed for this refresh.
 - Host-side syntax, signing-script help, and whitespace validation passed for the build and release changes.
 
 The X4 Pro OTA path supports a 64-byte Ed25519 signature over the firmware SHA-256 digest. This refresh intentionally removes the previous `.sig` asset because it was for the older image and the GitHub Actions secret `INKADEMIC_OTA_ED25519_PRIVATE_KEY` is not currently configured. Until that secret is configured and the signature is regenerated, use the refreshed image through the SD/recovery installer; do not use the old signature with this binary.
