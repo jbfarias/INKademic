@@ -45,6 +45,7 @@ class SdFirmwareUpdateActivity : public Activity {
   size_t firmwareSize = 0;
   size_t writtenBytes = 0;
   unsigned int lastRenderedPercent = 101;
+  unsigned int lastProgressBucket = 101;
   std::string errorMessage;
 
   void launchPicker();

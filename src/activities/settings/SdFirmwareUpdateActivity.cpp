@@ -146,6 +146,7 @@ void SdFirmwareUpdateActivity::onConfirmationResult(const ActivityResult& result
     state = State::UPDATING;
     writtenBytes = 0;
     lastRenderedPercent = 101;
+    lastProgressBucket = 101;
   }
   requestUpdateAndWait();
   performUpdate();
@@ -158,9 +159,17 @@ void SdFirmwareUpdateActivity::performUpdate() {
     auto* self = static_cast<SdFirmwareUpdateActivity*>(ctx);
     self->writtenBytes = written;
     self->firmwareSize = total;
-    // immediate=true: wake the render task directly. We're in a tight sync
-    // loop so the main loop won't drain the requestedUpdate flag for us.
-    self->requestUpdate(true);
+    // The flash loop is synchronous. Notify the render task only every 5% so
+    // thousands of 4 KiB writes cannot turn into a notification backlog or
+    // compete with the SD/flash transaction for the render lock.
+    const unsigned int pct = total > 0 ? static_cast<unsigned int>((written * 100) / total) : 0;
+    const unsigned int bucket = pct / 5;
+    if (bucket != self->lastProgressBucket || written == total) {
+      self->lastProgressBucket = bucket;
+      // immediate=true: wake the render task directly. We're in a tight sync
+      // loop so the main loop won't drain the requestedUpdate flag for us.
+      self->requestUpdate(true);
+    }
   };
 
   // Re-validate at flash time (TOCTOU): SD is removable, so don't trust the

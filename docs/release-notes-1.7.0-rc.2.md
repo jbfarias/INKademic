@@ -7,7 +7,7 @@ Release candidate dated 5 September 2026.
 | Device | File | Size | SHA-256 |
 | --- | --- | ---: | --- |
 | X3 / X4 | `firmware-x3-x4-v1.7.0-rc.2.bin` | 6,209,968 bytes | `35415ad151d60cde8069a72edd76c479352610c6ab8064d4cfdd25af1d07fe6a` |
-| X4 Pro | `firmware-x4-pro-v1.7.0-rc.2.bin` | 6,115,728 bytes | `c955751f3a5df702a21f01ac1d96a48df4fd4d8bbf058d1c83edbadd116b87f1` |
+| X4 Pro | `firmware-x4-pro-v1.7.0-rc.2.bin` | 6,116,816 bytes | `9fb9bd96f172840216682ff629067ee7e04edc1658239f88415fc8676850f030` |
 | Sticky | `firmware-sticky-v1.7.0-rc.2.bin` | 6,008,048 bytes | `f7daca20b3751d6574a4768fbbf0a74b4495e78dfb0439ea865b5fe090d3ee7b` |
 
 ## Included improvements
@@ -26,8 +26,8 @@ Release candidate dated 5 September 2026.
 - Stopped the SD backend before deep sleep, preserved the X4 Pro frontlight policy across wake and Quick Lock, and hardened compressed EPUB reads against invalid or oversized storage results.
 - Applied the new INKademic logo in the web companion pages and firmware web portal.
 - Exposed the X4 Pro “Restore light on wake” setting, persisted the live frontlight state before sleep, and parked/released the PWM driver safely around deep sleep.
-- Hardened SD firmware installation on X4 Pro: the installer now feeds the task watchdog for every transfer block and pauses persistent log capture while the OTA partition is being erased and written.
-- Corrected the X4 Pro portrait logo orientation. All RC2 hardware profiles disable serial and persistent SD log capture to keep firmware installation free of auxiliary I/O.
+- Hardened SD firmware installation on X4 Pro: the installer now uses short 16 KiB erase windows, temporarily allows a 60-second task-watchdog window during the flash transaction, feeds the watchdog between erase/write operations, and limits progress redraws to 5% steps. Persistent log capture remains paused while the OTA partition is being erased and written.
+- Corrected the X4 Pro portrait logo bitmap orientation. All RC2 hardware profiles disable serial and persistent SD log capture to keep firmware installation free of auxiliary I/O.
 
 ## Forks and references
 
@@ -39,7 +39,7 @@ These projects are references for selected features and compatibility decisions;
 
 - X3/X4, Sticky, and X4 Pro production builds completed successfully with OTA-size checks.
 - Simulator builds for X3/X4 and X4 Pro completed successfully and reported `INKademic version 1.7.0-rc.2`.
-- The X4 Pro production image uses 93.3% of the OTA application partition, leaving 437,872 bytes free.
+- The refreshed X4 Pro production image uses 93.3% of the OTA application partition, leaving 436,784 bytes free.
 - The default image uses 94.8% of its OTA application partition, leaving 343,632 bytes free; Sticky uses 91.7%, leaving 545,552 bytes free.
 - X4 Pro and X3/X4 simulator builds completed successfully; the X4 Pro smoke test passed with three page turns. Sticky production compilation was resumed for this refresh.
 - Host-side syntax, signing-script help, and whitespace validation passed for the build and release changes.

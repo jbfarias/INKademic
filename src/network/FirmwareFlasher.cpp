@@ -21,7 +21,11 @@ namespace {
 constexpr uint8_t ESP_IMAGE_MAGIC = 0xE9;
 constexpr size_t MIN_FIRMWARE_SIZE = 64 * 1024;
 constexpr size_t SEC = SPI_FLASH_SEC_SIZE;  // 4 KiB
-constexpr size_t BLK = 64 * 1024;           // 64 KiB block-erase granularity
+// Keep individual erase calls short enough that even a slow X4 Pro flash chip
+// cannot starve the task watchdog. The flash API accepts sector-aligned ranges;
+// 16 KiB is still efficient while leaving room to service the watchdog between
+// calls.
+constexpr size_t BLK = 16 * 1024;
 constexpr size_t CHUNK = 4096;
 constexpr size_t SHA_TRAILER = 32;
 constexpr uint8_t CHECKSUM_SEED = 0xEF;
@@ -84,6 +88,48 @@ uint16_t runningPartitionChipId() {
 }
 
 namespace {
+class FlashWatchdogGuard {
+ public:
+  FlashWatchdogGuard() {
+#ifndef SIMULATOR
+    // Arduino may initialize TWDT before the application reaches setup(), so
+    // accepting ESP_ERR_INVALID_STATE from esp_task_wdt_init() does not tell us
+    // which timeout is active. Give the long SD->OTA transaction an explicit
+    // bounded window and restore the normal application timeout afterwards.
+    const esp_task_wdt_config_t flashConfig = {
+        60U * 1000U,
+        0,
+        true,
+    };
+    reconfigured = esp_task_wdt_reconfigure(&flashConfig) == ESP_OK;
+    if (!reconfigured) {
+      LOG_DBG("FLASH", "TWDT reconfigure unavailable; continuing with active watchdog");
+    }
+#endif
+    esp_task_wdt_reset();
+  }
+
+  ~FlashWatchdogGuard() {
+    esp_task_wdt_reset();
+#ifndef SIMULATOR
+    if (reconfigured) {
+      const esp_task_wdt_config_t appConfig = {
+          15U * 1000U,
+          0,
+          true,
+      };
+      (void)esp_task_wdt_reconfigure(&appConfig);
+    }
+#endif
+  }
+
+  FlashWatchdogGuard(const FlashWatchdogGuard&) = delete;
+  FlashWatchdogGuard& operator=(const FlashWatchdogGuard&) = delete;
+
+ private:
+  bool reconfigured = false;
+};
+
 // Stream `length` bytes from `file` starting at the current read offset, feeding them through
 // both the XOR-checksum and SHA256 accumulators. Used by validateImageFile so the whole image
 // is verified end-to-end without holding it in RAM (ESP32-C3 only has ~380 KB).
@@ -302,6 +348,7 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
     CapturePauseGuard() { pauseCapturedLogs(); }
     ~CapturePauseGuard() { resumeCapturedLogs(); }
   } capturePauseGuard;
+  FlashWatchdogGuard flashWatchdogGuard;
 
   // Interleave erase + write so the progress bar advances 0→100% smoothly
   // rather than stalling for several seconds during a single up-front erase.
@@ -312,6 +359,8 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
       size_t eraseLen = std::min<size_t>(BLK, dest->size - streamPos);
       eraseLen = (eraseLen + SEC - 1) & ~(SEC - 1);
       eraseLen = std::min<size_t>(eraseLen, dest->size - streamPos);
+      esp_task_wdt_reset();
+      yield();
       if (esp_partition_erase_range(dest, streamPos, eraseLen) != ESP_OK) {
         LOG_ERR("FLASH", "erase @%u (len=%u) failed", static_cast<unsigned>(streamPos),
                 static_cast<unsigned>(eraseLen));
@@ -319,6 +368,8 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
         return Result::ERASE_FAIL;
       }
       erasedUpto = streamPos + eraseLen;
+      esp_task_wdt_reset();
+      yield();
     }
 
     const size_t want = std::min<size_t>(CHUNK, firmwareSize - streamPos);
@@ -336,6 +387,7 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
     streamPos += want;
     if (onProgress) onProgress(streamPos, firmwareSize, ctx);
     esp_task_wdt_reset();
+    yield();
     delay(1);
   }
   file.close();
