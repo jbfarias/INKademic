@@ -1,0 +1,30 @@
+<div class="card">
+  <h2>Firmware update</h2>
+  <p class="firmware-warning">
+    Use only an INKademic image built for this device. The image is uploaded to a temporary SD-card file,
+    validated completely, and only then made eligible for installation.
+  </p>
+
+  <div class="firmware-status" id="firmware-status">Checking device…</div>
+
+  <div class="firmware-upload">
+    <label for="firmware-file">Firmware image (.bin)</label>
+    <input id="firmware-file" type="file" accept=".bin,application/octet-stream" />
+    <button class="save-btn" id="firmware-upload-btn" type="button">Upload and validate</button>
+  </div>
+
+  <div class="firmware-progress" id="firmware-progress-wrap" hidden>
+    <div class="firmware-progress-track"><div id="firmware-progress-bar"></div></div>
+    <div id="firmware-progress-text">0%</div>
+  </div>
+
+  <div class="firmware-actions">
+    <button class="save-btn" id="firmware-install-btn" type="button" disabled>Install and reboot</button>
+    <button class="btn-small btn-delete" id="firmware-cancel-btn" type="button" disabled>Discard staged image</button>
+  </div>
+
+  <p class="firmware-help">
+    Keep the device powered during installation. A failed or interrupted write leaves the active firmware slot intact.
+    The browser connection will close when the device reboots; reconnect to this page to confirm the result.
+  </p>
+</div>

@@ -91,6 +91,13 @@ class CrossPointWebServer {
 
   // Request handlers
   void handleRoot() const;
+  void handleFirmwarePage() const;
+  void handleFirmwareStatus() const;
+  void handleFirmwareUpload();
+  void handleFirmwareUploadPost();
+  void handleFirmwareInstall();
+  void handleFirmwareCancel();
+  void processPendingFirmwareInstall();
   void handleJszip() const;
   void handleStyleCss() const;
   void handleLogo() const;
@@ -148,4 +155,41 @@ class CrossPointWebServer {
   void handleGetWifiNetworks() const;
   void handlePostWifiNetwork();
   void handleDeleteWifiNetwork();
+
+  enum class FirmwareState {
+    IDLE,
+    UPLOADING,
+    READY,
+    INSTALL_REQUESTED,
+    INSTALLING,
+    REBOOTING,
+    COMPLETED,
+    FAILED,
+    INTERRUPTED,
+  };
+
+  struct FirmwareUploadState {
+    HalFile file;
+    size_t received = 0;
+    size_t partitionLimit = 0;
+    bool active = false;
+    String error;
+  } firmwareUpload;
+
+  static constexpr const char* FIRMWARE_TEMP_PATH = "/.inkademic-firmware.part";
+  static constexpr const char* FIRMWARE_PATH = "/.inkademic-firmware.bin";
+  static constexpr const char* FIRMWARE_STATE_PATH = "/.inkademic-firmware.state";
+
+  FirmwareState firmwareState = FirmwareState::IDLE;
+  bool firmwareInstallPending = false;
+  size_t firmwareSize = 0;
+  size_t firmwareWritten = 0;
+  size_t firmwareTotal = 0;
+  String firmwareError;
+
+  static const char* firmwareStateName(FirmwareState state);
+  void restoreFirmwareState();
+  void writeFirmwareState(const char* state, const char* detail = nullptr) const;
+  void resetFirmwareStaging(bool removeReadyImage);
+  static void firmwareProgress(size_t written, size_t total, void* context);
 };

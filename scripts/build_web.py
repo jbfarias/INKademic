@@ -28,6 +28,7 @@ JS_OUT = os.path.join(OUT, "js")
 PAGES = {
     "home":     ("HomePageHtml",     "INKademic",                   "home",     ""),
     "files":    ("FilesPageHtml",    "Files - INKademic",           "files",    '  <script src="/js/jszip.min.js"></script>'),
+    "firmware": ("FirmwarePageHtml", "Firmware - INKademic",        "firmware", ""),
     "settings": ("SettingsPageHtml", "Settings - INKademic Reader", "settings", ""),
     "fonts":    ("FontsPageHtml",    "Fonts - INKademic",           "fonts",    ""),
     "highlights": ("HighlightsPageHtml", "Highlights - INKademic", "highlights", ""),
@@ -98,7 +99,7 @@ for slug, (ident, title, active, head_extra) in PAGES.items():
     values = {
         "title": title, "v": v, "head_extra": head_extra,
         "styles": page_css, "body": page_html, "script": script,
-        "cls_home": "", "cls_files": "", "cls_settings": "", "cls_fonts": "", "cls_highlights": "",
+        "cls_home": "", "cls_files": "", "cls_firmware": "", "cls_settings": "", "cls_fonts": "", "cls_highlights": "",
     }
     values[f"cls_{active}"] = ' class="active"'
     html = minify_html(render(base, values))

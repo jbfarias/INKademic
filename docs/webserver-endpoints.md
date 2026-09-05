@@ -19,6 +19,7 @@ the IP address shown on the device screen.
 | `GET` | `/files` | File manager page |
 | `GET` | `/settings` | Web settings page |
 | `GET` | `/fonts` | SD-card font manager page |
+| `GET` | `/firmware` | Firmware staging and installation page |
 | `GET` | `/js/jszip.min.js` | JavaScript asset used by the file manager |
 
 ## Device Status
@@ -54,6 +55,58 @@ Response:
 | `uptime` | number | Seconds since boot |
 | `device` | string | `"X3"` or `"X4"` hardware detection |
 | `serial` | string | Device serial number from eFuse, or `"Not found"` when unavailable |
+
+## Firmware Updates
+
+The browser firmware flow is deliberately separate from `POST /upload`, which
+continues to accept books and regular SD-card files. It is available only while
+the web server is running in File Transfer or Calibre Wireless mode.
+
+### `GET /firmware`
+
+Returns the firmware update page.
+
+### `GET /api/firmware/status`
+
+Returns the current staging/install state. Example:
+
+```json
+{
+  "state": "ready",
+  "version": "1.7.1-rc.2",
+  "device": "x4-pro",
+  "received": 6125712,
+  "size": 6125712,
+  "installSupported": true
+}
+```
+
+States include `idle`, `uploading`, `ready`, `install_requested`,
+`installing`, `rebooting`, `completed`, `failed`, and `interrupted`.
+
+### `POST /api/firmware/upload`
+
+Uploads one multipart field named `file`. Only `.bin` files that fit the next
+OTA partition are accepted. The response is returned after the complete file
+has been written and validated. Validation includes the ESP image magic,
+segment table, segment bounds, running-chip ID, partition size, XOR checksum,
+and appended SHA-256 trailer. A successful upload is staged for a separate
+install request.
+
+### `POST /api/firmware/install`
+
+Queues the validated staged image for installation and returns `202` before the
+flash transaction begins. The device then writes the inactive A/B application
+partition, switches the boot slot only after success, and reboots.
+
+### `POST /api/firmware/cancel`
+
+Removes the staged image and returns the state to `idle`. It is rejected once
+installation has started.
+
+The endpoint has no authentication. Use a private network or device hotspot,
+and do not expose port 80 to an untrusted network. This browser flow checks
+integrity, not Ed25519 authenticity; use signed release OTA for that guarantee.
 
 ## File Management
 

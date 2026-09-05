@@ -1,0 +1,59 @@
+.firmware-warning {
+      padding: 12px;
+      border: 1px solid rgba(217, 119, 6, 0.35);
+      border-radius: var(--radius-sm);
+      background: rgba(217, 119, 6, 0.08);
+      color: var(--font-color);
+    }
+.firmware-status {
+      margin: 18px 0;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--label-color);
+      white-space: pre-wrap;
+    }
+.firmware-upload {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0;
+    }
+.firmware-upload input[type="file"] {
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--card-bg);
+      color: var(--font-color);
+    }
+.firmware-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+.firmware-progress {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      margin: 14px 0;
+      color: var(--label-color);
+    }
+.firmware-progress-track {
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--border-color);
+    }
+.firmware-progress-track > div {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent-color);
+      transition: width 0.15s ease;
+    }
+.firmware-help {
+      margin-top: 20px;
+      color: var(--label-color);
+      font-size: 0.92em;
+    }

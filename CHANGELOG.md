@@ -1,5 +1,29 @@
 ## [Unreleased]
 
+## [1.7.1-rc.2] - 2026-09-05
+
+### Added
+
+- Added a **Firmware** page to the existing browser file-transfer interface.
+- Added multipart firmware upload with progress, staging, cancellation, and
+  install/reboot controls for X3/X4, Sticky, and X4 Pro application builds.
+- Added a persistent firmware state marker so interrupted, failed, completed,
+  and staged installations are visible after reconnecting or rebooting.
+
+### Safety
+
+- Browser uploads are written to a temporary SD-card file and are accepted only
+  after ESP image structure, chip ID, segment bounds, size, XOR checksum, and
+  appended SHA-256 validation succeed.
+- A validated image is promoted with a temporary backup before installation;
+  the existing A/B flash path remains responsible for sector-sized writes,
+  watchdog servicing, and boot-slot switching.
+- Installation starts only after the HTTP response is returned, preventing the
+  long flash transaction from running inside the web request callback.
+- The browser route does not claim Ed25519 authenticity: the current build has
+  no private signing key and the device validates image integrity rather than a
+  release signature. Use it only on a trusted network or private hotspot.
+
 ### Fixed
 
 - Made release-candidate version comparison understand numbered `-rc.N`

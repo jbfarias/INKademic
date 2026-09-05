@@ -14,6 +14,7 @@ The web server is available while the device is in **File Transfer** or
 - Manage saved Wi-Fi networks and OPDS servers
 - View, edit, filter, tag, and export EPUB highlights and notes
 - Upload and delete `.cpfont` SD-card font families
+- Stage, validate, and install firmware updates from the browser
 - Accept WebDAV clients and Calibre wireless uploads
 
 The server does not require authentication. Use it only on trusted private
@@ -78,7 +79,7 @@ OPDS server.
 
 ## Web Interface
 
-The browser UI has five primary pages.
+The browser UI has six primary pages.
 
 ### Home
 
@@ -153,6 +154,29 @@ upload.
 
 Installed fonts appear in **Settings > Reader > Font Options > Font Family**
 after the font registry refreshes.
+
+### Firmware Updates
+
+The **Firmware** page uses the same browser session as the file manager. Select
+the `.bin` for the exact device family, upload it, wait for validation to finish,
+then explicitly choose **Install and reboot**. The browser shows the staged,
+installing, failed, interrupted, and completed states and reconnects after the
+device restarts.
+
+The device first writes the upload to `/.inkademic-firmware.part`. It checks the
+ESP image header, segment boundaries, chip ID, partition size, XOR checksum, and
+appended SHA-256 before promoting it to `/.inkademic-firmware.bin`. Installation
+then runs in the normal application task, after the HTTP response has returned,
+and reuses the A/B updater with one-sector erase/write windows and watchdog
+servicing. A state marker allows the page to explain what happened after a
+disconnect or reboot.
+
+This is a convenience path for a trusted local network; the web server has no
+authentication. It validates image integrity but does not provide Ed25519
+signature verification in this build. For signed release distribution, use the
+documented release/OTA path with a properly signed artifact. The browser page
+is available only in firmware built after this feature was installed, and the
+ordinary `/upload` endpoint remains for books and other SD-card files.
 
 ## Security Notes
 
