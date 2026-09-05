@@ -1,6 +1,7 @@
 add_executable(DifferentialRoundingTest
   DifferentialRoundingTest.cpp
   ${REPO_ROOT}/lib/EpdFont/EpdFont.cpp
+  ${REPO_ROOT}/lib/EpdFont/EpdFontFamily.cpp
   ${REPO_ROOT}/lib/Utf8/Utf8.cpp
 )
 
@@ -14,4 +15,5 @@ target_link_libraries(DifferentialRoundingTest PRIVATE
   GTest::gtest_main
 )
 
-gtest_discover_tests(DifferentialRoundingTest)
+# This legacy runner owns main() and its assertions, rather than using GTest.
+add_test(NAME DifferentialRoundingTest COMMAND DifferentialRoundingTest)

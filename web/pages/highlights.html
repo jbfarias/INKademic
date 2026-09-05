@@ -9,6 +9,7 @@
   <div id="highlights-layout">
     <div id="book-sidebar">
       <h2>Books</h2>
+      <input type="search" id="book-search" placeholder="Filter books…" aria-label="Filter books" oninput="renderBookList()" />
       <div id="book-list">
         <div class="loader-container"><span class="loader"></span></div>
       </div>
@@ -28,11 +29,19 @@
           aria-label="Search highlights and notes"
         />
         <select id="highlight-tag-filter" class="tag-filter" onchange="applyFilters()" aria-label="Filter by tag">
-          <option value="">All tags</option>
+          <option value="">All tags / projects</option>
           <option value="*any">Any tag</option>
           <option value="*none">Untagged</option>
         </select>
+        <label>Modified from <input type="date" id="highlight-date-from" onchange="applyFilters()" /></label>
+        <label>to <input type="date" id="highlight-date-to" onchange="applyFilters()" /></label>
+        <small>Dates require a synchronized reader clock. Older undated notes remain visible without a date filter.</small>
         <span id="filter-count" class="filter-count"></span>
+        <select id="export-format" aria-label="Export format">
+          <option value="md">Markdown</option>
+          <option value="json">JSON</option>
+          <option value="csv">CSV</option>
+        </select>
         <button class="btn-export-notes" onclick="exportNotes()">Export Notes</button>
       </div>
       <div id="highlights-container" style="display:none;"></div>

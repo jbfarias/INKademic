@@ -473,7 +473,7 @@ int DictionaryDefinitionActivity::getLineHeight() const {
   return static_cast<int>(renderer.getLineHeight(getDefinitionFontId()) * SETTINGS.getReaderLineCompression());
 }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 bool DictionaryDefinitionActivity::showTouchDictionarySwitch() const {
   return hasModalBackground() && showLookupButton && mappedInput.hasTouch();
 }
@@ -484,14 +484,14 @@ int DictionaryDefinitionActivity::dictionaryFooterHeight() const {
 
   const auto metrics = UITheme::getInstance().getMetrics();
   const int dictionaryNameHeight = renderer.getLineHeight(UI_10_FONT_ID) + metrics.optionPopupTitleGap;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   return dictionaryNameHeight + (showTouchDictionarySwitch() ? kDictionarySwitchTouchHeight : 0);
 #else
   return dictionaryNameHeight;
 #endif
 }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 bool DictionaryDefinitionActivity::dictionarySwitchButtonContains(const int x, const int y) const {
   const int buttonY = modalY_ + modalHeight_ - kDictionarySwitchTouchHeight;
   return x >= modalX_ && x < modalX_ + modalWidth_ && y >= buttonY && y < buttonY + kDictionarySwitchTouchHeight;
@@ -1103,7 +1103,7 @@ void DictionaryDefinitionActivity::loop() {
   // still held would let the reader fire its configured long-press shortcut.
   if (handleLongPressExitAll(showLookupButton)) return;
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   int modalTouchX = 0;
   int modalTouchY = 0;
   if (hasModalBackground() && mappedInput.hasTouch() && !controller.requiresBackgroundRedrawAfterOverlay() &&
@@ -1115,7 +1115,7 @@ void DictionaryDefinitionActivity::loop() {
 
   // --- Controller active (LookingUp / AltFormPrompt / NotFound) ---
   if (controller.isActive()) {
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     int failureTouchX = 0;
     int failureTouchY = 0;
     if (hasModalBackground() && controller.hasFailureFeedback() && showTouchDictionarySwitch() &&
@@ -1192,7 +1192,7 @@ void DictionaryDefinitionActivity::loop() {
       requestUpdate();
     }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     if (touchDragLookup_) {
       int dragX = 0;
       int dragY = 0;
@@ -1240,7 +1240,7 @@ void DictionaryDefinitionActivity::loop() {
   }
 
   // --- View mode ---
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   int touchX = 0;
   int touchY = 0;
   if (showTouchDictionarySwitch() && mappedInput.wasScreenTapped(touchX, touchY) &&
@@ -1255,7 +1255,7 @@ void DictionaryDefinitionActivity::loop() {
     return;
   }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (showLookupButton && mappedInput.hasTouch() && mappedInput.wasLeftEdgeGesture()) {
     setResult(ActivityResult{});
     finish();
@@ -1549,7 +1549,7 @@ void DictionaryDefinitionActivity::render(RenderLock&&) {
   if (hasModalBackground() && !dictionaryName_.empty()) {
     const int innerPadding = metrics.optionPopupInnerPadding;
     const int footerLineHeight = renderer.getLineHeight(UI_10_FONT_ID);
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     const int switchButtonHeight = showTouchDictionarySwitch() ? kDictionarySwitchTouchHeight : 0;
 #else
     constexpr int switchButtonHeight = 0;
@@ -1564,7 +1564,7 @@ void DictionaryDefinitionActivity::render(RenderLock&&) {
     renderer.drawText(UI_10_FONT_ID, modalX_ + innerPadding, dictionaryNameY, visibleName.c_str());
   }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (!isWordSelectMode && showTouchDictionarySwitch()) {
     const Rect buttonRect{modalX_, modalY_ + modalHeight_ - kDictionarySwitchTouchHeight, modalWidth_,
                           kDictionarySwitchTouchHeight};

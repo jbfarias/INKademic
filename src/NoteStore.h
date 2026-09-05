@@ -23,6 +23,7 @@ struct Note {
   uint16_t tagId = 0;       // academic user-defined tag ID; 0 means none
   char legacyTag = 0;       // CrossNotes symbol tag retained for migration/display
   uint32_t timestamp = 0;  // this note's own last-modified time
+  uint32_t modifiedUnixTime = 0;  // wall clock seconds, 0 when unknown; legacy timestamp is uptime
 };
 
 class NoteStore {

@@ -674,7 +674,7 @@ void renderEditBookDatesPage(GfxRenderer& renderer, const MappedInputManager* ma
   const int yearW = 68;
   const int gap = 14;
   const int totalFieldW = monthW + gap + dayW + gap + yearW;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   const bool showTouchControls = mappedInput && mappedInput->hasTouch();
   constexpr int adjustButtonSize = 60;
   constexpr int adjustButtonRightPadding = 34;
@@ -723,7 +723,7 @@ void renderEditBookDatesPage(GfxRenderer& renderer, const MappedInputManager* ma
   drawDateField(renderer, fieldStartX + monthW + gap + dayW + gap, row2Y, yearW, yearBuf, selectedField == 5,
                 BookStatsTouchTarget::dateField(5));
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (showTouchControls) {
     const int fieldH = renderer.getLineHeight(UI_12_FONT_ID) + 10;
     drawDateAdjustButton(renderer, adjustButtonX, row1Y + (fieldH - adjustButtonSize) / 2, adjustButtonSize,

@@ -1,6 +1,6 @@
 #pragma once
 
-// CrossInk Notes — three-line list rows.
+// INKademic Notes — three-line list rows.
 //
 // FreeInkUI's list draws a label and a subtitle. CrossNotes rows carry a third
 // line (a highlight's tag+note, or a book's counts), which the widget has no

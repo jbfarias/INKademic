@@ -3,11 +3,11 @@ title: Home
 nav_order: 1
 ---
 
-# CrossInk Academic
+# INKademic
 
-Welcome to CrossInk Academic, a research-oriented fork of CrossPoint Reader.
+Welcome to INKademic, a research-oriented fork of CrossPoint Reader.
 
-[View on GitHub](https://github.com/jbfarias/CrossInk-academic)
+[View on GitHub](https://github.com/jbfarias/INKademic)
 
 ## User Docs
 
@@ -27,3 +27,5 @@ Welcome to CrossInk Academic, a research-oriented fork of CrossPoint Reader.
 - [Web Server Guide](./webserver.md)
 - [Troubleshooting](./troubleshooting.md)
 - [X4 Pro Validation](./x4-pro-validation.md)
+- [Release notes: v1.7.0-rc.2](./release-notes-1.7.0-rc.2.md)
+- [Fork lineage and references](./fork-lineage.md)

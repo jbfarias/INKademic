@@ -1,10 +1,12 @@
-# CrossInk Academic
+# INKademic
 
-O **CrossInk Academic** é um fork do CrossInk voltado a leitores acadêmicos. O projeto preserva a base do firmware original e incorpora melhorias destinadas à leitura, organização, consulta e estudo de textos acadêmicos em dispositivos de tinta eletrônica.
+O **INKademic** é um fork acadêmico independente do CrossInk, voltado a leitores acadêmicos. O projeto preserva a base do firmware original e incorpora melhorias destinadas à leitura, organização, consulta e estudo de textos acadêmicos em dispositivos de tinta eletrônica.
 
-**Versão atual: v1.7.0-rc (23 de agosto de 2026).**
+**Versão atual: v1.7.0-rc.2 (5 de setembro de 2026).**
 
 Este é um projeto independente e não oficial. Os créditos pelo firmware original pertencem aos desenvolvedores e colaboradores do CrossInk.
+
+A linhagem do fork e as referências usadas na integração acadêmica estão documentadas em [Fork lineage and references](./docs/fork-lineage.md).
 
 
 
@@ -57,19 +59,19 @@ My goal with this fork was to maintain the core Crosspoint firmware while integr
 - Added ability to move finished books to "Read" folder.
 - In-book menu to quickly adjust reader options without having to exit the book.
 - Reading stats: total books read, total reading time, number of sessions, pages turned, average session time, pages turned per minute. You can also set your reading stats as your sleep screen.
-- All-time reading stats [syncing](./docs/reading-stats-sync.md) between two CrossInk devices.
-- Reading [progress sync](./docs/nearby-position-sync.md) between two CrossInk devices.
+- All-time reading stats [syncing](./docs/reading-stats-sync.md) between two INKademic devices.
+- Reading [progress sync](./docs/nearby-position-sync.md) between two INKademic devices.
 - Added customizable Auto Page Turn Interval (anything between 5-120 seconds).
 - Added ability to view Recent Books as a 3x3 grid view.
 - Academic notes and highlights with document-safe migrations, compatible with the fork's ClippingStore v4.
 - User-defined annotation tags for clippings and current pages, with tag-aware exports.
 - Web **Highlights** page for searching, editing, tagging, and exporting EPUB notes through `/highlights`.
-- The academic notes, highlights, clippings, bookmarks, and annotation tags are included in every v1.7.0-rc device build.
-- X4 Pro support includes its ESP32-S3 display profile, touch/Home key, frontlight controls, USB storage, and CrossInk Academic USB identity.
+- The academic notes, highlights, clippings, bookmarks, and annotation tags are included in every v1.7.0-rc.2 device build.
+- X4 Pro support includes its ESP32-S3 display profile, touch/Home key, frontlight controls, USB storage, and INKademic USB identity.
 - EPUB robustness improvements for ruby groups, trailing markup after `</html>`, and transparent sleep overlays.
 - Project Gutenberg bundled as an official OPDS catalog; additional OPDS libraries can still be added manually.
 - Anna's Archive is not included in this release.
-- To view a more detailed list for each version, visit the [CrossInk Academic releases](https://github.com/jbfarias/CrossInk-academic/releases) page.
+- To view a more detailed list for each version, visit the [INKademic releases](https://github.com/jbfarias/INKademic/releases) page.
 
 ---
 
@@ -90,7 +92,7 @@ The UI now uses [Inter](https://fonts.google.com/specimen/Inter) as the display 
 
 ### Font Sizes
 
-CrossInk includes 10 pt, 12 pt, 14 pt, and 16 pt built-in reader font sizes.
+INKademic includes 10 pt, 12 pt, 14 pt, and 16 pt built-in reader font sizes.
 
 See [SD Card Fonts](./docs/sd-card-fonts.md) for installing additional font families and size ranges.
 
@@ -102,7 +104,7 @@ Reader Options, Bionic Reading, Guide Dots, Force Paragraph Indents, reading sta
 
 ### Custom button actions
 
-CrossInk adds configurable button shortcuts.
+INKademic adds configurable button shortcuts.
 
 See [Controls](./docs/controls.md) for the full action list and defaults.
 
@@ -110,7 +112,7 @@ See [Controls](./docs/controls.md) for the full action list and defaults.
 
 ## Tips for the best reading experience
 
-CrossInk runs on an ESP32-C3 with limited RAM, so very large folders or complex EPUBs can be slower than they would be on a phone, tablet, or desktop app.
+INKademic runs on an ESP32-C3 with limited RAM, so very large folders or complex EPUBs can be slower than they would be on a phone, tablet, or desktop app.
 
 - Keep folders under about 200 files. For the smoothest browsing, aim for 50-100 files per folder.
 - Having 1000+ books on the SD card is fine if they are split into smaller folders, such as by author, series, genre, or read/unread status.
@@ -118,7 +120,7 @@ CrossInk runs on an ESP32-C3 with limited RAM, so very large folders or complex 
 - Text-first EPUBs are the best fit. Large image-heavy EPUBs, scanned books, comics, and omnibus files with thousands of sections may load slowly or fail under memory pressure.
 - As a rough target, EPUBs under 20 MB tend to work the best. Files over 50 MB may still work, but they are more likely to be slow or memory-sensitive, especially if they contain many large images.
 - If an EPUB is unusually slow, try [optimizing](./docs/webserver.md#epub-optimization) it with the built-in web optimizer (via File Transfer) before copying it to the SD card: remove unused high-resolution images, split very large omnibus files, and avoid embedding multiple full font families when possible.
-- Use a reliable SD card and leave some free space. CrossInk stores settings, reading progress, cache files, stats, and generated book data on the card.
+- Use a reliable SD card and leave some free space. INKademic stores settings, reading progress, cache files, stats, and generated book data on the card.
 
 ## Development Device Simulator
 
@@ -130,17 +132,17 @@ See [Simulator](./docs/simulator.md) for setup, platform notes, keyboard control
 
 ## Installation
 
-The fastest way to install Crossink is by using Inky, Crossink's web companion app: https://inky.crossink.dev/#flash-tools
+The fastest way to install INKademic is by using Inky, INKademic's web companion app: https://inky.crossink.dev/#flash-tools
 
-Download a `firmware-*.bin` from the [CrossInk Academic releases page](https://github.com/jbfarias/CrossInk-academic/releases), then flash it with the web installer or command line.
+Download a `firmware-*.bin` from the [INKademic releases page](https://github.com/jbfarias/INKademic/releases), then flash it with the web installer or command line.
 
-For **v1.7.0-rc**, choose the firmware for your device:
+For **v1.7.0-rc.2**, choose the firmware for your device:
 
-- [X3/X4 firmware](https://github.com/jbfarias/CrossInk-academic/releases/download/v1.7.0-rc/firmware-x3-x4-v1.7.0-rc.bin)
-- [X4 Pro firmware](https://github.com/jbfarias/CrossInk-academic/releases/download/v1.7.0-rc/firmware-x4-pro-v1.7.0-rc.bin)
-- [Sticky firmware](https://github.com/jbfarias/CrossInk-academic/releases/download/v1.7.0-rc/firmware-sticky-v1.7.0-rc.bin)
+- [X3/X4 firmware](https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-x3-x4-v1.7.0-rc.2.bin)
+- [X4 Pro firmware](https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-x4-pro-v1.7.0-rc.2.bin)
+- [Sticky firmware](https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-sticky-v1.7.0-rc.2.bin)
 
-All three builds include the academic annotation features. This is a release candidate; verify the SHA-256 values and follow the device-specific instructions in the [v1.7.0-rc release notes](https://github.com/jbfarias/CrossInk-academic/releases/tag/v1.7.0-rc) before flashing.
+All three builds include the academic annotation features. This is a release candidate; verify the SHA-256 values and follow the device-specific instructions in the [v1.7.0-rc.2 release notes](./docs/release-notes-1.7.0-rc.2.md) before flashing.
 
 See [Installation](./docs/installation.md) for step-by-step flashing and revert instructions.
 
@@ -160,13 +162,14 @@ See [Installation](./docs/installation.md) for step-by-step flashing and revert 
 - [Web server endpoints](./docs/webserver-endpoints.md)
 - [Common issues](./docs/troubleshooting.md)
 - [Project scope](./SCOPE.md)
+- [Fork lineage and references](./docs/fork-lineage.md)
 - [Development docs](./docs/development/README.md)
 
 ---
 
 ## Development quick start
 
-CrossInk uses PlatformIO for building and flashing firmware.
+INKademic uses PlatformIO for building and flashing firmware.
 
 See [Getting Started](./docs/development/getting-started.md) for prerequisites, clone setup, and validation commands.
 
@@ -209,7 +212,7 @@ See [Testing and Debugging](./docs/development/testing-debugging.md) for serial 
 - `freeink-sdk/` - hardware SDK submodule for display, input, storage, and battery (docs: https://freeink.org/docs)
 - `web/` - web portal sources (`templates/`, `pages/`, `assets/`); compiled by `scripts/build_web.py` into `src/network/html/*.generated.h`
 - `docs/` - user and developer documentation, published via the `site/` Astro site
-- `site/` - Astro project that builds `docs/` into the CrossInk documentation website
+- `site/` - Astro project that builds `docs/` into the INKademic documentation website
 - `test/` - unit tests and EPUB test fixtures
 - `scripts/` - build, codegen, and release tooling (i18n generation, web asset building, hyphenation tries, release packaging, etc.)
 - `bin/` - helper scripts for formatting (`clang-format-fix`) and CI checks
@@ -220,7 +223,7 @@ See [Testing and Debugging](./docs/development/testing-debugging.md) for serial 
 
 ## Internals
 
-The ESP32-C3 has about 380 KB of usable RAM, so CrossInk stores reusable book and device data on the SD card instead of rebuilding everything in memory.
+The ESP32-C3 has about 380 KB of usable RAM, so INKademic stores reusable book and device data on the SD card instead of rebuilding everything in memory.
 
 See [Data Cache](./docs/data-cache.md) for the `.crosspoint` layout and [File Formats](./docs/file-formats.md) for binary cache details.
 

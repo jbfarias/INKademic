@@ -439,7 +439,7 @@ void EpubReaderMenuActivity::drawIconTabBar(const Rect rect, const bool drawBott
     renderer.drawLine(rect.x, rect.y + rect.height - 1, rect.x + rect.width - 1, rect.y + rect.height - 1, true);
   }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   const size_t iconCount = mappedInput.hasTouchHardware() ? TOUCH_ICON_COUNT : MENU_TAB_COUNT;
 #else
   constexpr size_t iconCount = MENU_TAB_COUNT;
@@ -472,7 +472,7 @@ void EpubReaderMenuActivity::drawIconTabBar(const Rect rect, const bool drawBott
     } else if (i == static_cast<size_t>(MenuTab::Settings)) {
       drawSdkIcon(uiTarget, icon_cog_24, iconX, iconY, !tabFocused);
     }
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     else {
       drawSdkIcon(uiTarget, SETTINGS.disableReaderTouchscreen ? icon_pointer_off_24 : icon_pointer_24, iconX, iconY);
     }

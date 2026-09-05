@@ -89,6 +89,7 @@ void CrossPointState::toJson(JsonDocument& doc) const {
   doc["showBootScreen"] = showBootScreen;
   doc["quickLockResumePending"] = quickLockResumePending;
   doc["quickLockResumeTrigger"] = quickLockResumeTrigger;
+  doc["quickLockRestoreFrontlight"] = quickLockRestoreFrontlight;
 }
 
 bool CrossPointState::fromJson(JsonVariantConst doc) {
@@ -119,6 +120,7 @@ bool CrossPointState::fromJson(JsonVariantConst doc) {
   showBootScreen = doc["showBootScreen"] | true;
   quickLockResumePending = doc["quickLockResumePending"] | false;
   quickLockResumeTrigger = doc["quickLockResumeTrigger"] | static_cast<uint8_t>(0);
+  quickLockRestoreFrontlight = doc["quickLockRestoreFrontlight"] | false;
   return true;
 }
 

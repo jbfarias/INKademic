@@ -145,7 +145,7 @@ bool HalStorage::beginUsbDrive() {
     return false;
   }
   return true;
-#elif defined(SIMULATOR) && CROSSINK_APP_CAP_USB_DRIVE
+#elif defined(SIMULATOR) && INKADEMIC_APP_CAP_USB_DRIVE
   return true;
 #else
   return false;
@@ -160,7 +160,7 @@ void HalStorage::endUsbDrive() {
 
 UsbDriveState HalStorage::usbDriveState() const {
   if (!usbDriveContext) return UsbDriveState::Unsupported;
-#if FREEINK_CAP_USB_MSC || (defined(SIMULATOR) && CROSSINK_APP_CAP_USB_DRIVE)
+#if FREEINK_CAP_USB_MSC || (defined(SIMULATOR) && INKADEMIC_APP_CAP_USB_DRIVE)
   switch (usbDriveContext->massStorage.state()) {
     case freeink::UsbMassStorageState::WaitingForHost:
       return UsbDriveState::WaitingForHost;
@@ -197,6 +197,10 @@ class HalStorage::StorageLock {
   return SDCard.method(__VA_ARGS__);
 
 uint64_t HalStorage::totalBytes() const { return SDCard.sdTotalBytes(); }
+void HalStorage::shutdown() {
+  StorageLock lock;
+  SDCard.shutdown();
+}
 
 uint64_t HalStorage::usedBytes() { HAL_STORAGE_WRAPPED_CALL(sdUsedBytes); }
 

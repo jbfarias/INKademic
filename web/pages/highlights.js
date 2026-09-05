@@ -3,6 +3,7 @@ let books = [];
 let currentBookPath = null;
 let currentHighlights = [];
 let availableTags = [];
+let selectionRequest = 0;
 
 // ── Utility ────────────────────────────────────────────────────────────────
 function showMessage(text, type) {
@@ -13,7 +14,11 @@ function showMessage(text, type) {
 }
 
 function noteId(h) {
-  return `note_${h.spineIndex}_${h.startPage}_${h.startWordIndex}`;
+  return `note_${h.spineIndex}_${h.startPage}_${h.startWordIndex}_${h.timestamp}_${h._idx}`;
+}
+
+function normalizedSearch(value) {
+  return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
 
 // ── Tabs ────────────────────────────────────────────────────────────────────
@@ -151,7 +156,8 @@ async function loadBookList() {
 function renderBookList() {
   const container = document.getElementById('book-list');
   container.innerHTML = '';
-  books.forEach(book => {
+  const query = normalizedSearch(document.getElementById('book-search')?.value);
+  books.filter(book => normalizedSearch(book.name).includes(query)).forEach(book => {
     const div = document.createElement('div');
     div.className = 'book-item' + (book.path === currentBookPath ? ' active' : '');
     div.dataset.path = book.path;
@@ -165,7 +171,12 @@ function renderBookList() {
 
 // ── Select book ─────────────────────────────────────────────────────────────
 async function selectBook(path) {
+  captureUnsavedEdits();
+  if (currentHighlights.some(h => h.note?.unsaved) &&
+      !confirm('This book has unsaved notes. Discard them and switch books?')) return;
+  const request = ++selectionRequest;
   currentBookPath = path;
+  currentHighlights = [];
   renderBookList();
 
   const main = document.getElementById('highlights-main');
@@ -185,7 +196,7 @@ async function selectBook(path) {
     // A slower response for a previously selected book must not replace the
     // current one — saves address the device by currentBookPath plus an index
     // into currentHighlights, so a mismatch would write to the wrong book.
-    if (currentBookPath !== path) return;
+    if (currentBookPath !== path || request !== selectionRequest) return;
     availableTags = (highlights[0] && Array.isArray(highlights[0].availableTags))
       ? highlights[0].availableTags : [];
     highlights.forEach((h, i) => { h._idx = i; });
@@ -193,6 +204,7 @@ async function selectBook(path) {
     resetFilters();
     applyFilters();
   } catch (e) {
+    if (currentBookPath !== path || request !== selectionRequest) return;
     highlightsContainer.innerHTML = '<p class="empty-hint" style="color:var(--danger-color);">Could not load highlights for this book.</p>';
     console.error(e);
   }
@@ -200,9 +212,59 @@ async function selectBook(path) {
 
 // ── Export notes ─────────────────────────────────────────────────────────────
 function currentBookTitle() {
+  if (currentHighlights[0]?.bookTitle) return currentHighlights[0].bookTitle;
   const book = books.find(b => b.path === currentBookPath);
   const name = book ? book.name : (currentBookPath.split('/').pop() || 'book');
   return name.replace(/\.epub$/i, '');
+}
+
+function exportRecord(h, metadata) {
+  return {
+    documentId: metadata.documentId || null,
+    title: metadata.title,
+    author: metadata.author || null,
+    bookPath: metadata.bookPath,
+    chapter: h.chapterTitle || '',
+    location: {
+      spineIndex: h.spineIndex, paragraphIndex: h.paragraphIndex === 65535 ? null : h.paragraphIndex ?? null,
+      startPage: h.startPage, startWordIndex: h.startWordIndex, endWordIndex: h.endWordIndex ?? null,
+      clippingTimestamp: h.timestamp, layoutSignature: h.layoutSignature ?? null,
+      // Positions are layout-dependent. The exact quote is retained for re-anchoring.
+      exactQuote: h.text || ''
+    },
+    quote: h.text || '', note: h.note?.text || '',
+    tag: h.note?.tagName || h.note?.legacyTag || '',
+    modifiedAt: h.note?.modifiedUnixTime ? new Date(h.note.modifiedUnixTime * 1000).toISOString() : null,
+    unsaved: Boolean(h.note?.unsaved)
+  };
+}
+
+function csvCell(value) {
+  let text = String(value ?? '');
+  // Prevent formulas executing when an export is opened in a spreadsheet.
+  if (/^[\s]*[=+@-]/.test(text) || /^[\t\r\n]/.test(text)) text = "'" + text;
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+
+function buildNotesExport(highlights, metadata, format) {
+  const records = highlights.map(h => exportRecord(h, metadata));
+  if (format === 'json') return JSON.stringify({ schema: 'crossink-academic-notes', version: 1, records }, null, 2);
+  if (format === 'csv') {
+    const fields = ['title', 'author', 'bookPath', 'documentId', 'chapter', 'tag', 'modifiedAt', 'quote', 'note', 'unsaved'];
+    return [fields.map(csvCell).join(','), ...records.map(r => fields.map(f => csvCell(r[f])).join(','))].join('\r\n');
+  }
+  const lines = [`# ${metadata.title}`, '', `Author: ${metadata.author || 'Unknown'}`,
+    `Document: ${metadata.documentId || 'Unknown'}`, `File: ${metadata.bookPath}`, '',
+    '_Page and word positions depend on layout; keep the exact quote when locating a passage._', ''];
+  records.forEach(r => {
+    lines.push(`## ${r.chapter || 'Unknown Chapter'}${r.tag ? ' — ' + r.tag : ''}`, '',
+      `Location: spine ${r.location.spineIndex}; paragraph ${r.location.paragraphIndex ?? 'unknown'}; word ${r.location.startWordIndex}`,
+      `Modified: ${r.modifiedAt || 'Unknown'}${r.unsaved ? ' (unsaved draft)' : ''}`, '',
+      r.quote.split(/\r?\n/).map(line => '> ' + line).join('\n'), '');
+    if (r.note) lines.push(`**Note:** ${r.note}`, '');
+    lines.push('---', '');
+  });
+  return lines.join('\n');
 }
 
 function exportNotes() {
@@ -218,31 +280,15 @@ function exportNotes() {
     showMessage('No highlights match the current filter.', 'error');
     return;
   }
-  const lines = [`# ${title}`, ''];
-  if (shown.length !== currentHighlights.length) {
-    lines.push(`_${shown.length} of ${currentHighlights.length} highlights (filtered)_`, '');
-  }
-
-  shown.forEach(h => {
-    const chapter = h.chapterTitle || 'Unknown Chapter';
-    const tag = (h.note && h.note.tagName) ? ` (${h.note.tagName})` : '';
-    lines.push(`## ${chapter}${tag}`);
-    lines.push('');
-    lines.push(`> ${h.text}`);
-    if (h.note && h.note.text) {
-      lines.push('');
-      lines.push(`**Note:** ${h.note.text}`);
-    }
-    lines.push('');
-    lines.push('---');
-    lines.push('');
-  });
-
-  const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+  const format = document.getElementById('export-format')?.value || 'md';
+  const metadata = { title, author: currentHighlights[0]?.bookAuthor,
+    documentId: currentHighlights[0]?.documentId, bookPath: currentBookPath };
+  const mime = { md: 'text/markdown', csv: 'text/csv', json: 'application/json' };
+  const blob = new Blob([buildNotesExport(shown, metadata, format)], { type: mime[format] + ';charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = (title.replace(/[^\w\- ]/g, '').trim() || 'book') + ' - notes.md';
+  a.download = (title.replace(/[<>:"/\\|?*\x00-\x1f]/g, '').trim() || 'book') + ' - notes.' + format;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -325,6 +371,10 @@ function resetFilters() {
   const tag = document.getElementById('highlight-tag-filter');
   if (search) search.value = '';
   if (tag) tag.value = '';
+  for (const id of ['highlight-date-from', 'highlight-date-to']) {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  }
   populateTagFilter();
 }
 
@@ -340,7 +390,7 @@ function populateTagFilter() {
   used.sort();
   const keep = sel.value;
   sel.innerHTML =
-    '<option value="">All tags</option>' +
+    '<option value="">All tags / projects</option>' +
     '<option value="*any">Any tag</option>' +
     '<option value="*none">Untagged</option>' +
     used.map(t => {
@@ -372,10 +422,19 @@ function captureUnsavedEdits() {
 // The highlights currently passing the search box and tag filter. Export uses
 // this too, so what you download matches what you are looking at.
 function filteredHighlights() {
-  const q = (document.getElementById('highlight-search')?.value || '').trim().toLowerCase();
+  const q = normalizedSearch(document.getElementById('highlight-search')?.value).trim();
   const tagSel = document.getElementById('highlight-tag-filter')?.value || '';
+  const from = document.getElementById('highlight-date-from')?.value || '';
+  const to = document.getElementById('highlight-date-to')?.value || '';
 
   return currentHighlights.filter(h => {
+    const seconds = h.note?.modifiedUnixTime || 0;
+    if (from || to) {
+      if (!seconds) return false;
+      const date = new Date(seconds * 1000);
+      const day = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      if ((from && day < from) || (to && day > to)) return false;
+    }
     const tag = (h.note && h.note.tagId) ? h.note.tagId : 0;
     if (tagSel === '*any' && !tag) return false;
     if (tagSel === '*none' && tag) return false;
@@ -383,9 +442,9 @@ function filteredHighlights() {
 
     if (!q) return true;
     const note = (h.note && h.note.text) ? h.note.text : '';
-    return (h.text || '').toLowerCase().includes(q) ||
-           note.toLowerCase().includes(q) ||
-           (h.chapterTitle || '').toLowerCase().includes(q);
+    return normalizedSearch(h.text).includes(q) ||
+           normalizedSearch(note).includes(q) ||
+           normalizedSearch(h.chapterTitle).includes(q) || normalizedSearch(h.note?.tagName).includes(q);
   });
 }
 
@@ -397,7 +456,8 @@ function applyFilters() {
 
   const count = document.getElementById('filter-count');
   if (count) {
-    const filtering = q || tagSel;
+    const filtering = q || tagSel || document.getElementById('highlight-date-from')?.value ||
+      document.getElementById('highlight-date-to')?.value;
     count.textContent = filtering ? `${shown.length} of ${currentHighlights.length}` : '';
   }
 
@@ -451,6 +511,9 @@ function copyHighlight(idx, what) {
 // ── Save note (and tag) ─────────────────────────────────────────────────────
 async function saveNote(idx) {
   const h = currentHighlights[idx];
+  if (!h) return;
+  const path = currentBookPath;
+  const request = selectionRequest;
   const textarea = document.getElementById(noteId(h));
   const tagSelect = document.getElementById('tag_' + idx);
   const statusEl = document.getElementById('status_' + idx);
@@ -460,7 +523,7 @@ async function saveNote(idx) {
   // Read the text once, here. Reading it again after the await would record
   // whatever the user has typed since — text the device was never sent — and
   // then flash "Saved" over it.
-  const noteText = textarea.value.trim();
+  const noteText = textarea.value;
 
   btn.disabled = true;
   try {
@@ -468,7 +531,7 @@ async function saveNote(idx) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        path: currentBookPath,
+        path,
         spineIndex: h.spineIndex,
         startPage: h.startPage,
         startWordIndex: h.startWordIndex,
@@ -478,6 +541,7 @@ async function saveNote(idx) {
       })
     });
     if (!res.ok) throw new Error(await res.text());
+    if (path !== currentBookPath || request !== selectionRequest || currentHighlights[idx] !== h) return;
 
     // Update local state
     if (!currentHighlights[idx].note) {
@@ -487,6 +551,9 @@ async function saveNote(idx) {
     currentHighlights[idx].note.tagId = tagValue;
     const tag = availableTags.find(t => Number(t.id) === tagValue);
     currentHighlights[idx].note.tagName = tag ? tag.name : '';
+    const changedWhileSaving = textarea.value !== noteText;
+    h.note.unsaved = changedWhileSaving;
+    if (changedWhileSaving) h.note.text = textarea.value;
 
     populateTagFilter();  // a tag may have just appeared or disappeared
 
@@ -495,7 +562,7 @@ async function saveNote(idx) {
       badgeEl.innerHTML = tag ? `<span class="note-tag">${escapeHtml(tag.name)}</span>` : '';
     }
 
-    statusEl.classList.add('visible');
+    if (!changedWhileSaving) statusEl.classList.add('visible');
     setTimeout(() => statusEl.classList.remove('visible'), 2500);
   } catch (e) {
     showMessage('Failed to save note: ' + e.message, 'error');

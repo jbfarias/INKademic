@@ -5,7 +5,7 @@ nav_order: 16
 
 # X4 Pro Validation Matrix
 
-CrossInk Academic has a dedicated X4 Pro firmware and simulator profile. The
+INKademic has a dedicated X4 Pro firmware and simulator profile. The
 simulator is useful for UI and input regressions, but it does not replace a
 physical X4 Pro for display-controller, battery-gauge, frontlight, USB and
 sleep/wake validation.
@@ -41,5 +41,5 @@ Before publishing a firmware build, verify the following on an actual X4 Pro:
    with a long table of contents open or fall back safely without a reboot.
 
 Record the firmware version, SDK revision, display-controller variant and test
-book names with each physical run. CrossInk Academic must not claim full X4 Pro
+book names with each physical run. INKademic must not claim full X4 Pro
 hardware validation from simulator results alone.

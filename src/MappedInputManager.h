@@ -25,7 +25,7 @@ class MappedInputManager {
   // Call with true in reader activity onEnter(), false in onExit().
   void setReaderMode(bool enabled) { readerMode = enabled; }
   void setPowerAsConfirmInReaderMode(bool enabled) { powerAsConfirmInReaderMode = enabled; }
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   void setReaderTouchscreenOverride(bool enabled) { readerTouchscreenOverride = enabled; }
 #else
   constexpr void setReaderTouchscreenOverride(bool) {}
@@ -44,7 +44,7 @@ class MappedInputManager {
   bool isPressed(Button button) const;
   const GfxRenderer& getRenderer() const { return renderer; }
   enum class RowTouch : uint8_t { None, Down, Tap };
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   bool hasTouch() const;
   bool hasTouchHardware() const;
   // True on boards with a capacitive home key (X4 Pro), where the bottom-edge
@@ -181,7 +181,7 @@ class MappedInputManager {
   void simulatorInjectPress(Button button);
   void simulatorInjectRelease(Button button);
   void simulatorClearInputFrame();
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   void simulatorInjectTouchDown(int x, int y);
   void simulatorInjectTouchMove(int x, int y);
   void simulatorInjectTouchRelease(int x, int y);
@@ -193,7 +193,7 @@ class MappedInputManager {
   const GfxRenderer& renderer;
   bool readerMode = false;
   bool powerAsConfirmInReaderMode = false;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   bool readerTouchscreenOverride = false;
 #endif
   mutable bool suppressBackRelease = false;
@@ -203,7 +203,7 @@ class MappedInputManager {
   // One-frame synthetic releases let a chord route through the existing
   // activity navigation path without allocating an event object.
   mutable std::array<bool, BUTTON_COUNT> injectedReleases{};
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   mutable bool suppressTouchTap = false;
   mutable bool deferredHomeGesture = false;
 #endif
@@ -212,7 +212,7 @@ class MappedInputManager {
   std::array<bool, BUTTON_COUNT> simulatorReleased{};
   std::array<bool, BUTTON_COUNT> simulatorHeld{};
   std::array<unsigned long, BUTTON_COUNT> simulatorPressStart{};
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   struct SimulatorTouch {
     bool pressed = false;
     bool pressedThisFrame = false;
@@ -233,7 +233,7 @@ class MappedInputManager {
   uint8_t mappedFrontButtonFor(Button button) const;
   bool shouldUsePowerAsConfirmFallback() const;
   bool shouldMirrorPowerAsConfirmHold() const;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   bool touchInputEnabled() const;
   bool hasHomeKeyHardware() const;
   bool wasBackGesture() const;

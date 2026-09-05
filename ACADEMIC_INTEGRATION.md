@@ -1,6 +1,6 @@
-# Academic Annotation Integration on CrossInk Academic v1.6.1
+# Academic Annotation Integration on INKademic v1.6.1
 
-This integration is part of the official CrossInk Academic v1.6.1 release.
+This integration is part of the official INKademic v1.6.1 release.
 The original merge work was based on CrossInk v1.5.1-rc-2 and is retained here
 for compatibility and migration history.
 
@@ -17,7 +17,7 @@ supported hardware family:
 
 Notes, highlights, clippings, bookmarks, page tags, annotation tags, and the
 web `/highlights` page are compiled into all three builds. The release also
-updates the product identity to CrossInk Academic and carries the compatible
+updates the product identity to INKademic and carries the compatible
 EPUB and transparent-sleep robustness fixes selected from the upstream RC2
 improvements.
 
@@ -79,7 +79,7 @@ compatibility behavior.
 
 The academic annotation merge remains compatible with the RC2 stack-overflow
 fixes. The v1.6.1 release additionally updates `src/main.cpp` for the final
-CrossInk Academic startup identity.
+INKademic startup identity.
 
 ## Manual merge resolutions
 
@@ -103,7 +103,7 @@ The synthetic three-way merge required five manual resolutions:
 A full PlatformIO simulator build could not be completed in the integration container because PlatformIO package-network access is restricted. Run the following on the normal macOS development environment:
 
 ```bash
-cd CrossInk-academic
+cd INKademic
 git submodule update --init --recursive
 
 CI=1 "$HOME/.venvs/platformio-crossink/bin/pio" \

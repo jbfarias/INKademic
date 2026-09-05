@@ -86,10 +86,10 @@ class SimulatorSmokeTest {
   std::vector<ScriptAction> inputScript;
   size_t scriptIndex = 0;
 
-  static bool enabled() { return std::getenv("CROSSINK_SIMULATOR_SMOKE_TEST") != nullptr; }
+  static bool enabled() { return std::getenv("INKADEMIC_SIMULATOR_SMOKE_TEST") != nullptr; }
 
   static int pageTurnCount() {
-    const char* raw = std::getenv("CROSSINK_SIMULATOR_SMOKE_PAGE_TURNS");
+    const char* raw = std::getenv("INKADEMIC_SIMULATOR_SMOKE_PAGE_TURNS");
     if (raw == nullptr || raw[0] == '\0') {
       return 2;
     }
@@ -97,7 +97,7 @@ class SimulatorSmokeTest {
   }
 
   static void applyRequestedTheme() {
-    const char* raw = std::getenv("CROSSINK_SIMULATOR_SMOKE_THEME");
+    const char* raw = std::getenv("INKADEMIC_SIMULATOR_SMOKE_THEME");
     if (raw == nullptr || raw[0] == '\0') {
       return;
     }
@@ -204,9 +204,9 @@ class SimulatorSmokeTest {
         break;
 
       case SmokeStep::Sleep: {
-        const char* bookPath = std::getenv("CROSSINK_SIMULATOR_SMOKE_BOOK");
+        const char* bookPath = std::getenv("INKADEMIC_SIMULATOR_SMOKE_BOOK");
         if (bookPath == nullptr || bookPath[0] == '\0') {
-          LOG_INF("SMOKE", "Skipping Reader step; CROSSINK_SIMULATOR_SMOKE_BOOK is not set");
+          LOG_INF("SMOKE", "Skipping Reader step; INKADEMIC_SIMULATOR_SMOKE_BOOK is not set");
           step = SmokeStep::Reader;
           break;
         }
@@ -265,7 +265,7 @@ class SimulatorSmokeTest {
     return {ScriptActionType::Render, MappedInputManager::Button::Back, label, framesToSettle, 0, 0};
   }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   static ScriptAction touchDown(const int x, const int y) {
     return {ScriptActionType::TouchDown, MappedInputManager::Button::Back, nullptr, 0, x, y};
   }
@@ -290,7 +290,7 @@ class SimulatorSmokeTest {
     scriptIndex = 0;
 
     const int turns = pageTurnCount();
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     if (mappedInputManager.hasTouch()) {
       const int width = renderer.getScreenWidth();
       const int height = renderer.getScreenHeight();
@@ -436,7 +436,7 @@ class SimulatorSmokeTest {
         simulatorHomeKeyInput.injectLongPress();
         break;
       case ScriptActionType::OpenSmokeBook: {
-        const char* bookPath = std::getenv("CROSSINK_SIMULATOR_SMOKE_BOOK");
+        const char* bookPath = std::getenv("INKADEMIC_SIMULATOR_SMOKE_BOOK");
         if (bookPath == nullptr || bookPath[0] == '\0') fail("Smoke test book path is missing");
         activityManager.goToReader(bookPath, true);
         break;
@@ -448,17 +448,17 @@ class SimulatorSmokeTest {
         SETTINGS.disableReaderTouchscreen = false;
         break;
       case ScriptActionType::TouchDown:
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
         mappedInputManager.simulatorInjectTouchDown(action.x, action.y);
 #endif
         break;
       case ScriptActionType::TouchMove:
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
         mappedInputManager.simulatorInjectTouchMove(action.x, action.y);
 #endif
         break;
       case ScriptActionType::TouchRelease:
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
         mappedInputManager.simulatorInjectTouchRelease(action.x, action.y);
 #endif
         break;

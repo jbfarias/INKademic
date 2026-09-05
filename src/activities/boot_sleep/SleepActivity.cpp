@@ -617,7 +617,7 @@ void SleepActivity::renderDefaultSleepScreen() const {
 
   renderer.clearScreen();
   renderer.drawImage(Logo120, (pageWidth - 120) / 2, (pageHeight - 120) / 2, 120, 120);
-  renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2 + 70, tr(STR_CROSSINK), true, EpdFontFamily::BOLD);
+  renderer.drawCenteredText(UI_10_FONT_ID, pageHeight / 2 + 70, tr(STR_INKADEMIC), true, EpdFontFamily::BOLD);
   renderer.drawCenteredText(SMALL_FONT_ID, pageHeight / 2 + 95, tr(STR_SLEEPING));
 
   // Make sleep screen dark unless light is selected in settings
@@ -626,8 +626,8 @@ void SleepActivity::renderDefaultSleepScreen() const {
     renderer.invertScreen();
   }
 
-#ifdef CROSSINK_SHOW_SLEEP_BUILD_INFO
-  const std::string buildInfo = std::string(CROSSINK_BUILD_ENV) + " " + CROSSINK_VERSION;
+#ifdef INKADEMIC_SHOW_SLEEP_BUILD_INFO
+  const std::string buildInfo = std::string(INKADEMIC_BUILD_ENV) + " " + INKADEMIC_VERSION;
   const std::string visibleBuildInfo =
       renderer.truncatedText(SMALL_FONT_ID, buildInfo.c_str(), pageWidth - sleepBuildInfoSideMargin * 2);
   renderer.drawCenteredText(SMALL_FONT_ID, pageHeight / 2 + 118, visibleBuildInfo.c_str(), lightSleepScreen);

@@ -24,7 +24,7 @@ std::vector<QuickActions::Trigger> availableTriggers() {
     triggers.push_back(QuickActions::Trigger::LongPressHome);
     triggers.push_back(QuickActions::Trigger::DoubleTapHome);
   }
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (!gpio.hasTouch()) {
     triggers.push_back(QuickActions::Trigger::LongBack);
     triggers.push_back(QuickActions::Trigger::LongMenu);

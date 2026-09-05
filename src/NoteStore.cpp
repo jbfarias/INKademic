@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cinttypes>  // for PRIx32 (not guaranteed via <cstdint>)
 #include <cstring>
+#include <ctime>
 
 #include "KOReaderDocumentId.h"
 
@@ -84,16 +85,19 @@ bool NoteStore::loadFromFile(const std::string& path) {
   }
   const int fileVersion = doc["v"] | 0;  // 0 = written before the marker existed
   if (fileVersion > kNotesFileVersion) {
-    LOG_ERR(LOG_TAG, "Notes file %s is version %d, newer than this firmware understands (%d) — reading what it can",
+    LOG_ERR(LOG_TAG, "Notes file %s is version %d, newer than this firmware understands (%d) — preserving without writes",
             path.c_str(), fileVersion, kNotesFileVersion);
+    return false;
   }
   const std::string storedDocumentId = doc["documentId"] | std::string{};
   if (!storedDocumentId.empty() && !bookDocumentId.empty() && storedDocumentId != bookDocumentId) {
     LOG_ERR(LOG_TAG, "Notes document identity mismatch for %s; ignoring stale notes", path.c_str());
     notes.clear();
-    return true;
+    return false;
   }
+  if (!doc["notes"].is<JsonArray>()) return false;
   const JsonArray arr = doc["notes"].as<JsonArray>();
+  notes.reserve(arr.size());
   for (const JsonVariant entry : arr) {
     // A non-object row (e.g. a hand-edited "notes": [1,2,3]) would otherwise
     // deserialise entirely to defaults and be kept as a phantom note keyed
@@ -111,6 +115,7 @@ bool NoteStore::loadFromFile(const std::string& path) {
     // multi-megabyte note, and this runs on every open of that book.
     if (note.text.size() > NOTE_TEXT_MAX) note.text.resize(NOTE_TEXT_MAX);
     note.timestamp = obj["timestamp"] | uint32_t(0);
+    note.modifiedUnixTime = obj["modifiedUnixTime"] | uint32_t(0);
     note.tagId = obj["tagId"] | uint16_t(0);
     // CrossNotes compatibility: old files stored a symbol in "tag". Keep it
     // until the user chooses an academic tag, then the new schema supersedes it.
@@ -160,6 +165,7 @@ bool NoteStore::saveToFile(const std::string& path) const {
     }
     obj["text"] = note.text;
     obj["timestamp"] = note.timestamp;
+    if (note.modifiedUnixTime != 0) obj["modifiedUnixTime"] = note.modifiedUnixTime;
     if (note.tagId != 0) obj["tagId"] = note.tagId;
     if (note.legacyTag != 0) obj["tag"] = std::string(1, note.legacyTag);
   }
@@ -169,6 +175,12 @@ bool NoteStore::saveToFile(const std::string& path) const {
   // through — the truncated .tmp then gets renamed over a perfectly good file
   // and the .bak is deleted in the same breath, destroying the notes while
   // reporting success. Checked here, before anything is renamed.
+  if (doc.overflowed()) {
+    LOG_ERR(LOG_TAG, "Not enough memory to serialize notes; preserving existing file");
+    file.close();
+    Storage.remove(tmpPath.c_str());
+    return false;
+  }
   const size_t expected = measureJson(doc);
   const size_t written = serializeJson(doc, file);
   const bool synced = file.sync();
@@ -251,13 +263,20 @@ bool NoteStore::saveNoteAndTag(const char* filePath, uint16_t spineIndex, uint16
     loadForBook(filePath, "epub");
   }
 
+  if (loadFailed) return false;
+  // Reject oversized input instead of silently cutting a UTF-8 character or quote.
+  if (text && strnlen(text, NOTE_TEXT_MAX + 1) > NOTE_TEXT_MAX) {
+    LOG_ERR(LOG_TAG, "Note exceeds %u bytes", static_cast<unsigned>(NOTE_TEXT_MAX));
+    return false;
+  }
+
   const std::string path = notesFilePath(filePath);
   const int idx = findNoteIndex(spineIndex, startPage, startWordIndex, clippingTimestamp);
 
   if (idx >= 0) {
     // Update existing. Also migrates a legacy (0) key forward.
     notes[idx].clippingTimestamp = clippingTimestamp;
-    if (text != nullptr) notes[idx].text = std::string(text).substr(0, NOTE_TEXT_MAX);
+    if (text != nullptr) notes[idx].text = text;
     if (applyTag) {
       notes[idx].tagId = tagId;
       notes[idx].legacyTag = 0;
@@ -269,13 +288,21 @@ bool NoteStore::saveNoteAndTag(const char* filePath, uint16_t spineIndex, uint16
     note.startPage = startPage;
     note.startWordIndex = startWordIndex;
     note.clippingTimestamp = clippingTimestamp;
-    note.text = text != nullptr ? std::string(text).substr(0, NOTE_TEXT_MAX) : std::string();
+    note.text = text != nullptr ? text : "";
     note.tagId = applyTag ? tagId : 0;
     note.timestamp = millis();
     notes.push_back(std::move(note));
   }
 
-  return saveToFile(path);
+  const time_t now = time(nullptr);
+  // Unsynchronized clocks must not turn uptime into a fabricated calendar date.
+  notes[idx >= 0 ? static_cast<size_t>(idx) : notes.size() - 1].modifiedUnixTime =
+      now >= 1577836800 && static_cast<uint64_t>(now) <= UINT32_MAX ? static_cast<uint32_t>(now) : 0;
+  if (saveToFile(path)) return true;
+  // Reload the durable state after failure; avoid a second 4 KiB note copy on C3.
+  unload();
+  loadForBook(filePath, "epub");
+  return false;
 }
 
 bool NoteStore::saveNote(const char* filePath, uint16_t spineIndex, uint16_t startPage, uint16_t startWordIndex,
@@ -299,7 +326,10 @@ bool NoteStore::deleteNote(const char* filePath, uint16_t spineIndex, uint16_t s
   if (idx < 0) return true;  // Already gone
 
   notes.erase(notes.begin() + idx);
-  return saveToFile(path);
+  if (saveToFile(path)) return true;
+  unload();
+  loadForBook(filePath, "epub");
+  return false;
 }
 
 // ─── Migration / bulk delete ────────────────────────────────────────────────

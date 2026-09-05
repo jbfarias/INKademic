@@ -26,6 +26,8 @@ class HalStorage {
   ~HalStorage();
   bool begin();
   bool ready() const;
+  // Call after all sleep-time writes and file users have finished.
+  void shutdown();
   uint64_t totalBytes() const;
   uint64_t usedBytes();
   std::vector<String> listFiles(const char* path = "/", int maxFiles = 200);

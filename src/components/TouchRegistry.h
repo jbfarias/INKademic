@@ -8,7 +8,7 @@
 #include "AppCapabilities.h"
 #include "components/themes/BaseTheme.h"
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 class TouchRegistry {
  public:
   enum Kind : uint8_t { Item = 0, Back = 1, Tab = 2, Cover = 3, Button = 4 };

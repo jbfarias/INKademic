@@ -2,47 +2,47 @@
   "schema_version": 1,
   "releases": [
     {
-      "id": "rc-1.7.0-rc-x3-x4",
+      "id": "rc-1.7.0-rc.2-x3-x4",
       "channel": "rc",
-      "name": "1.7.0-rc",
-      "version": "1.7.0-rc",
+      "name": "1.7.0-rc.2",
+      "version": "1.7.0-rc.2",
       "variant": "x3-x4",
-      "released_at": "2026-08-23T00:00:00Z",
-      "notes": "CrossInk Academic v1.7.0-rc release candidate: X4 Pro validation matrix, EPUB memory-budget regression tests, academic annotations in all device builds.",
-      "firmware_url": "https://github.com/jbfarias/CrossInk-academic/releases/download/v1.7.0-rc/firmware-x3-x4-v1.7.0-rc.bin",
-      "firmware_sha256": "d5c74d70ed67812eafd06228f8610eabef2a8c05e189d85b2d1f5faeeeb249ae",
-      "size": 6278400,
+      "released_at": "2026-09-05T00:00:00Z",
+      "notes": "INKademic v1.7.0-rc.2 release candidate: academic annotations in all device builds, X4 Pro compatibility, exports, and memory/efficiency improvements.",
+      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-x3-x4-v1.7.0-rc.2.bin",
+      "firmware_sha256": "f0a412a16a375ba5edc116a0f8655bdd4a8a180d180ca2f87184372f4e8eb0d3",
+      "size": 6318128,
       "supported_devices": [
         "x4",
         "x3"
       ]
     },
     {
-      "id": "rc-1.7.0-rc-sticky",
+      "id": "rc-1.7.0-rc.2-sticky",
       "channel": "rc",
-      "name": "1.7.0-rc",
-      "version": "1.7.0-rc",
+      "name": "1.7.0-rc.2",
+      "version": "1.7.0-rc.2",
       "variant": "sticky",
-      "released_at": "2026-08-23T00:00:00Z",
-      "notes": "CrossInk Academic v1.7.0-rc release candidate: X4 Pro validation matrix, EPUB memory-budget regression tests, academic annotations in all device builds.",
-      "firmware_url": "https://github.com/jbfarias/CrossInk-academic/releases/download/v1.7.0-rc/firmware-sticky-v1.7.0-rc.bin",
-      "firmware_sha256": "7ec75e849d057120ce5190df53ee819c2f2652e300acdff730315665d5373ec2",
-      "size": 6074704,
+      "released_at": "2026-09-05T00:00:00Z",
+      "notes": "INKademic v1.7.0-rc.2 release candidate: academic annotations in all device builds, X4 Pro compatibility, exports, and memory/efficiency improvements.",
+      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-sticky-v1.7.0-rc.2.bin",
+      "firmware_sha256": "e74ebece2593f7a37e63083d752d18c2a03cf765067c3f88dca89660cca03b5c",
+      "size": 6113664,
       "supported_devices": [
         "sticky"
       ]
     },
     {
-      "id": "rc-1.7.0-rc-x4-pro",
+      "id": "rc-1.7.0-rc.2-x4-pro",
       "channel": "rc",
-      "name": "1.7.0-rc",
-      "version": "1.7.0-rc",
+      "name": "1.7.0-rc.2",
+      "version": "1.7.0-rc.2",
       "variant": "x4-pro",
-      "released_at": "2026-08-23T00:00:00Z",
-      "notes": "CrossInk Academic v1.7.0-rc release candidate: X4 Pro validation matrix, EPUB memory-budget regression tests, academic annotations in all device builds.",
-      "firmware_url": "https://github.com/jbfarias/CrossInk-academic/releases/download/v1.7.0-rc/firmware-x4-pro-v1.7.0-rc.bin",
-      "firmware_sha256": "a1e349a5e23fdef8ca19218ad29fad1d9d96a67f13ca1c99bdfa56dce76f7fce",
-      "size": 6170704,
+      "released_at": "2026-09-05T00:00:00Z",
+      "notes": "INKademic v1.7.0-rc.2 release candidate: academic annotations in all device builds, X4 Pro compatibility, exports, and memory/efficiency improvements.",
+      "firmware_url": "https://github.com/jbfarias/INKademic/releases/download/v1.7.0-rc.2/firmware-x4-pro-v1.7.0-rc.2.bin",
+      "firmware_sha256": "58c4fe7ff8c40487717bb1a87cfbffcb85e3afd50be6159e3d65b6c11e8e1e7f",
+      "size": 6211552,
       "supported_devices": [
         "x4-pro"
       ]

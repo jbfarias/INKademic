@@ -6,7 +6,7 @@ has_children: true
 
 # Development Docs
 
-This section contains technical information for building, testing, and understanding CrossInk.
+This section contains technical information for building, testing, and understanding INKademic.
 It is written for software developers who may be new to embedded development.
 
 - [Getting Started](./getting-started.md)

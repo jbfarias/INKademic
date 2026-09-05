@@ -1,4 +1,4 @@
-"""Build the CrossInk web portal: compose pages from shared templates/assets,
+"""Build the INKademic web portal: compose pages from shared templates/assets,
 minify, gzip, and emit the C headers that the firmware serves from flash.
 
 Source of truth lives under web/:
@@ -26,11 +26,11 @@ JS_OUT = os.path.join(OUT, "js")
 
 # slug -> (generated identifier, <title>, active nav, extra <head> markup)
 PAGES = {
-    "home":     ("HomePageHtml",     "CrossInk",                   "home",     ""),
-    "files":    ("FilesPageHtml",    "Files - CrossInk",           "files",    '  <script src="/js/jszip.min.js"></script>'),
-    "settings": ("SettingsPageHtml", "Settings - CrossInk Reader", "settings", ""),
-    "fonts":    ("FontsPageHtml",    "Fonts - CrossInk",           "fonts",    ""),
-    "highlights": ("HighlightsPageHtml", "Highlights - CrossInk", "highlights", ""),
+    "home":     ("HomePageHtml",     "INKademic",                   "home",     ""),
+    "files":    ("FilesPageHtml",    "Files - INKademic",           "files",    '  <script src="/js/jszip.min.js"></script>'),
+    "settings": ("SettingsPageHtml", "Settings - INKademic Reader", "settings", ""),
+    "fonts":    ("FontsPageHtml",    "Fonts - INKademic",           "fonts",    ""),
+    "highlights": ("HighlightsPageHtml", "Highlights - INKademic", "highlights", ""),
 }
 
 PRESERVE_TAGS = "pre|code|textarea|script|style"

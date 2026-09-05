@@ -229,7 +229,7 @@ KOReaderSyncClient::Error KOReaderSyncClient::authenticate() {
   }
   http.end();
   // KOSync-compatible implementations use different successful 2xx codes.
-  // Keep CrossInk's validation of the reference server's 200 JSON response.
+  // Keep INKademic's validation of the reference server's 200 JSON response.
   if (isSuccessfulHttpCode(httpCode)) return OK;
   if (httpCode == 401) return AUTH_FAILED;
   return SERVER_ERROR;

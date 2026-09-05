@@ -1,5 +1,5 @@
 #pragma once
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 #include <FreeInkApp.h>
 #include <FreeInkUIGfxRenderer.h>
 #endif
@@ -129,7 +129,7 @@ class DictionaryLookupController {
   bool getRecordHistory() const { return recordHistory_; }
 
  private:
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   using AltFormUiApp = freeink::ui::FreeInkApp<2, 1>;
   static constexpr freeink::ui::ActionId ACTION_ALT_FORM_NO = 1;
   static constexpr freeink::ui::ActionId ACTION_ALT_FORM_YES = 2;
@@ -143,7 +143,7 @@ class DictionaryLookupController {
   Activity& owner;
   const std::string& cachePath;
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   freeink::ui::GfxRendererTarget altFormUiTarget;
   AltFormUiApp altFormUiApp;
   bool altFormUiReady = false;

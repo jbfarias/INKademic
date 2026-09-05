@@ -31,7 +31,7 @@ constexpr uint32_t DOWNLOAD_IDLE_TIMEOUT_MS = 30000;
 constexpr size_t DEFAULT_DOWNLOAD_BUFFER_SIZE = 2048;
 constexpr uint8_t MAX_REDIRECTS = 5;
 constexpr char HTTP_USER_AGENT[] =
-    "CrossInk-Academic/" CROSSINK_VERSION " (+https://github.com/jbfarias/CrossInk-academic)";
+    "INKademic/" INKADEMIC_VERSION " (+https://github.com/jbfarias/INKademic)";
 
 void logNetworkState(const char* phase) {
   LOG_DBG("HTTP", "%s: heap free=%u maxAlloc=%u wifi=%d rssi=%d", phase, ESP.getFreeHeap(), ESP.getMaxAllocHeap(),
@@ -222,7 +222,7 @@ HttpDownloader::DownloadError runGetWolfSsl(const std::string& url, const std::s
       return HttpDownloader::HTTP_ERROR;
     }
     // Replace SecureHttpClient's built-in User-Agent so strict servers receive
-    // exactly one header while retaining CrossInk's device/version identity.
+    // exactly one header while retaining INKademic's device/version identity.
     http.setUserAgent(HTTP_USER_AGENT);
     if (sink.resumeOffset > 0) {
       char rangeHeader[40];

@@ -84,7 +84,7 @@ bool isWebSettingAvailable(const SettingInfo& setting) {
     return false;
   }
 
-#if !CROSSINK_APP_CAP_TOUCH
+#if !INKADEMIC_APP_CAP_TOUCH
   if (setting.nameId == StrId::STR_TOUCH_READER_CONTROLS || setting.nameId == StrId::STR_DISABLE_TOUCHSCREEN) {
     return false;
   }
@@ -560,7 +560,7 @@ void CrossPointWebServer::handleStatus() const {
   const String ipAddr = apMode ? WiFi.softAPIP().toString() : WiFi.localIP().toString();
 
   JsonDocument doc;
-  doc["version"] = CROSSINK_VERSION;
+  doc["version"] = INKADEMIC_VERSION;
   doc["ip"] = ipAddr;
   doc["mode"] = apMode ? "AP" : "STA";
   doc["rssi"] = apMode ? 0 : WiFi.RSSI();
@@ -2176,7 +2176,10 @@ void CrossPointWebServer::handleGetHighlights() const {
   }
 
   ANNOTATION_TAGS.load();
-  CLIPPINGS.loadForBook(path.c_str(), "", "", "epub");
+  if (!CLIPPINGS.loadForBook(path.c_str(), "", "", "epub")) {
+    server->send(500, "text/plain", "Could not read highlights; existing data preserved");
+    return;
+  }
   NOTES.loadForBook(path.c_str(), "epub");
   const auto& clippings = CLIPPINGS.getClippings();
   server->setContentLength(CONTENT_LENGTH_UNKNOWN);
@@ -2197,8 +2200,14 @@ void CrossPointWebServer::handleGetHighlights() const {
     doc["startWordIndex"] = clipping.startWordIndex;
     doc["timestamp"] = clipping.timestamp;
     doc["chapterTitle"] = clipping.chapterTitle;
+    doc["paragraphIndex"] = clipping.paragraphIndex;
+    doc["endWordIndex"] = clipping.endWordIndex;
+    doc["layoutSignature"] = clipping.layoutSignature;
     doc["text"] = text;
     if (i == 0) {
+      doc["bookTitle"] = CLIPPINGS.getBookTitle();
+      doc["bookAuthor"] = CLIPPINGS.getBookAuthor();
+      doc["documentId"] = CLIPPINGS.getDocumentId();
       JsonArray tags = doc["availableTags"].to<JsonArray>();
       for (uint8_t tagIndex = 0; tagIndex < ANNOTATION_TAGS.count(); ++tagIndex) {
         const AnnotationTag* tag = ANNOTATION_TAGS.at(tagIndex);
@@ -2212,6 +2221,7 @@ void CrossPointWebServer::handleGetHighlights() const {
       JsonObject noteObject = doc["note"].to<JsonObject>();
       noteObject["text"] = note->text;
       noteObject["tagId"] = note->tagId;
+      noteObject["modifiedUnixTime"] = note->modifiedUnixTime;
       if (note->legacyTag != 0) noteObject["legacyTag"] = std::string(1, note->legacyTag);
       const char* tagName = ANNOTATION_TAGS.nameForId(note->tagId);
       if (tagName) noteObject["tagName"] = tagName;

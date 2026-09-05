@@ -31,9 +31,9 @@ def _capability_enabled(env):
             name, value = define[0], define[1]
         else:
             name, value = define, None
-        if name == "CROSSINK_APP_CAP_TOUCH":
+        if name == "INKADEMIC_APP_CAP_TOUCH":
             return str(value) == "1"
-    raise RuntimeError("CROSSINK_APP_CAP_TOUCH is missing from CPPDEFINES")
+    raise RuntimeError("INKADEMIC_APP_CAP_TOUCH is missing from CPPDEFINES")
 
 
 def audit_app_touch_gate(target, source, env):

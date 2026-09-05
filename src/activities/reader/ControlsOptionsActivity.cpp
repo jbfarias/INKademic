@@ -69,7 +69,7 @@ void ControlsOptionsActivity::rebuildSettingsList() {
   settings = buildControlsSettingsParentList(allSettings);
   powerSettings = buildControlsPowerSettingsList(allSettings);
   homeButtonSettings = buildControlsHomeButtonSettingsList(allSettings);
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (!gpio.hasTouch()) {
     frontButtonSettings = buildControlsFrontButtonSettingsList(allSettings);
   }

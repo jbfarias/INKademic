@@ -60,7 +60,7 @@ class HalGPIO {
   bool wasAnyReleased() const;
   unsigned long getHeldTime() const;
   unsigned long getPowerButtonHeldTime() const;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   bool hasTouch() const;
   // Capacitive home key under the bezel, reported by the touch controller
   // (e.g. X4 Pro's GT911 key). Tap = short press (fires on release, the primary

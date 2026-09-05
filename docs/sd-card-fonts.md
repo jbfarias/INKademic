@@ -5,7 +5,7 @@ nav_order: 4
 
 # SD Card Fonts
 
-CrossInk supports loading additional fonts from the SD card, including fonts
+INKademic supports loading additional fonts from the SD card, including fonts
 with extended Unicode coverage (CJK, Cyrillic, Greek, etc.).
 
 ## Installing Fonts
@@ -14,7 +14,7 @@ There are three ways to install fonts:
 
 ### Option 1: Download from device
 
-1. Connect your CrossInk reader to Wi-Fi
+1. Connect your INKademic reader to Wi-Fi
 2. Go to **Settings > Reader > Font Options > Manage Fonts**
 3. Browse available font families and select to download
 4. Downloaded fonts appear immediately in **Settings > Reader > Font Options > Font Family**
@@ -31,7 +31,7 @@ There are three ways to install fonts:
 ### Option 3: Manual SD card copy (Fastest)
 
 1.  Download font files from the
-    [CrossInk Fonts](https://github.com/uxjulia/crossink-fonts/tree/main/cpfonts) repository.
+    [INKademic Fonts](https://github.com/uxjulia/crossink-fonts/tree/main/cpfonts) repository.
     - Click the `.zip` file for the font you want then click on the download icon to download the raw file.
 2.  Copy font family folders to one of two locations on your SD card:
     - `/.fonts/` — hidden directory (preferred; keeps the SD root tidy
@@ -57,13 +57,13 @@ There are three ways to install fonts:
                 ├── Merriweather_12.cpfont
                 └── ...
 
-3.  Insert the SD card and power on your CrossInk device
+3.  Insert the SD card and power on your INKademic device
 
 ## Dictionary Fonts
 
 EPUB books can use a different installed SD-card family for dictionary definitions.
 This can be set globally or per-book via `Font Options`. If a
-saved point size is no longer available, CrossInk chooses the closest file from
+saved point size is no longer available, INKademic chooses the closest file from
 the dictionary family. If the device experiences low available RAM, you may see the
 dictionary font fall back to your reader font. This is normal.
 

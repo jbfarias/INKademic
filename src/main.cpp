@@ -503,11 +503,13 @@ CrossPointSettings::SHORT_PWRBTN getPowerButtonAction() {
   return action;
 }
 
-void notifyQuickLockChanged() {
+void notifyQuickLockChanged(const bool restoringAfterWake = false) {
   const bool locked = buttonShortcutController.isQuickLocked();
   mappedInputManager.clearInjectedReleases();
   LOG_DBG("MAIN", "Quick Lock %s", locked ? "enabled" : "disabled");
   if (locked) {
+    if (!restoringAfterWake) APP_STATE.quickLockRestoreFrontlight = Frontlight.isOn();
+    Frontlight.setOn(false);
     activityManager.notifyInputLockChanged(true);
     int top = 0;
     int right = 0;
@@ -526,6 +528,8 @@ void notifyQuickLockChanged() {
     renderer.fillRect(x + 18, y + 25, 4, 6, background);
     renderer.displayBuffer(HalDisplay::FAST_REFRESH);
   } else {
+    if (APP_STATE.quickLockRestoreFrontlight) Frontlight.setOn(true);
+    APP_STATE.quickLockRestoreFrontlight = false;
     (void)activityManager.requestUpdateAndWait();
     activityManager.notifyInputLockChanged(false);
   }
@@ -961,6 +965,10 @@ void enterDeepSleep(bool fromTimeout) {
     }
   }
 
+  // The simulator owns a separate POSIX storage backend; it never cuts SD rails.
+#ifndef SIMULATOR
+  Storage.shutdown();
+#endif
   putTiltSensorToSleepForDeepSleep();
   display.deepSleep();
   mirrorWakeShortPressToNvs();  // next boot's wake-hold check reads this pre-SD
@@ -1184,13 +1192,10 @@ void setup() {
   UITheme::getInstance().reload();
   ButtonNavigator::setMappedInputManager(mappedInputManager);
   logBootHeap("boot state ready");
-  // Frontlight PWM up (no-op on boards without one). X4 Pro restores the complete
-  // persisted state; other frontlight boards retain their opt-in wake behavior.
-#if FREEINK_DEVICE_X4PRO || defined(SIMULATOR_DEVICE_X4_PRO)
-  const bool restoreLightOn = SETTINGS.frontlightOn != 0;
-#else
-  const bool restoreLightOn = SETTINGS.frontlightOn != 0 && (SETTINGS.frontlightRestoreOnWake != 0 || isSilentReboot);
-#endif
+  // Respect Restore on Wake on Pro too. Keep a pending Quick Lock dark until unlock.
+  const bool restoreLightOn = SETTINGS.frontlightOn != 0 &&
+      (SETTINGS.frontlightRestoreOnWake != 0 || (isSilentReboot && !isNetworkResume)) &&
+      !APP_STATE.quickLockResumePending;
   Frontlight.begin(SETTINGS.frontlightBrightness, SETTINGS.frontlightWarmth, restoreLightOn);
 
   // Re-sync the wake-hold NVS mirror with the freshly-loaded settings, covering
@@ -1220,7 +1225,7 @@ void setup() {
   }
 
   // First serial output only here to avoid timing inconsistencies for power button press duration verification
-  LOG_DBG("MAIN", "Starting CrossInk Academic version " CROSSINK_VERSION);
+  LOG_DBG("MAIN", "Starting INKademic version " INKADEMIC_VERSION);
   logMemoryStats("Boot");
 
   // Resolve the single boot-presentation decision. Skipping the splash also
@@ -1398,7 +1403,7 @@ void setup() {
     // restored lock immediately.
     (void)activityManager.requestUpdateAndWait();
     buttonShortcutController.restoreQuickLock(millis(), quickLockResumeTrigger);
-    notifyQuickLockChanged();
+    notifyQuickLockChanged(true);
   }
 
   allowSleepAt = millis() + 2000;
@@ -1446,7 +1451,7 @@ void loop() {
   // Check for any user activity (button press or release) or active background work
   static unsigned long lastActivityTime = millis();
   if (gpio.wasAnyPressed() || gpio.wasAnyReleased()
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
       || gpio.wasTouchActivity()
 #endif
       || halTiltSensor.hadActivity() || activityManager.preventAutoSleep()) {
@@ -1606,7 +1611,7 @@ void loop() {
 
   const unsigned long activityStartTime = millis();
   activityManager.loop();
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   // A delayed Home event is valid for this activity dispatch only. If an
   // unrelated gesture took priority, do not carry it into the next activity.
   mappedInputManager.clearDeferredHomeGesture();

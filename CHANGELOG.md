@@ -1,3 +1,28 @@
+## [v1.7.0-rc.2] - 2026-09-05
+
+### Added
+
+- Added date-aware academic filters and Markdown, JSON, and CSV exports with
+  document identity, chapter, quote, stable layout metadata, and note context.
+- Preserved touch navigation for footnotes and academic references, including
+  table clippings and return-to-origin behavior, on the X4 Pro.
+
+### Changed
+
+- Consolidated the Pro, memory, efficiency, and academic workflow improvements
+  into one RC2 release across X3/X4, Sticky, and X4 Pro targets.
+- Avoided repeated recent-book and automatic statistics writes when their data is
+  unchanged.
+- Kept note writes durable and rejected oversized or newer unreadable note data
+  instead of replacing it with an empty file.
+
+### Fixed
+
+- Separated pioarduino SDK cache decisions by chip and SDK configuration.
+- Stopped the SD backend before deep sleep and preserved the X4 Pro frontlight
+  policy across wake and Quick Lock.
+- Hardened compressed EPUB reads against negative or oversized storage results.
+
 ## [v1.7.0-rc] - 2026-08-23
 
 ### Added
@@ -20,8 +45,8 @@
 
 ### Changed
 
-- Promoted the CrossInk Academic notes, highlights, clippings, and annotation-tag improvements to the X3/X4, Sticky, and X4 Pro builds.
-- Updated the product name to CrossInk Academic across device names, translations, startup identity, and the X4 Pro USB descriptor.
+- Promoted the INKademic notes, highlights, clippings, and annotation-tag improvements to the X3/X4, Sticky, and X4 Pro builds.
+- Updated the product name to INKademic across device names, translations, startup identity, and the X4 Pro USB descriptor.
 - Kept the X4 Pro firmware and simulator on the same academic feature set as the X3/X4 and Sticky builds.
 - Ported compatible RC2 robustness fixes for EPUB ruby groups, trailing markup, and low-memory transparent sleep overlays.
 
@@ -138,8 +163,8 @@
 
 - EPUB tables now lay out a row at a time in both Incremental and Full Section indexing, keeping regular tables readable without whole-table buffering.
 - Touch support for Seeed Studio Sticky
-- Nearby File Transfer can send EPUB, TXT, XTC, XTCH, PNG, and BMP files directly between two CrossInk devices without a Wi-Fi network.
-- Recent Books and image-file long-press actions can send files directly to a nearby CrossInk device.
+- Nearby File Transfer can send EPUB, TXT, XTC, XTCH, PNG, and BMP files directly between two INKademic devices without a Wi-Fi network.
+- Recent Books and image-file long-press actions can send files directly to a nearby INKademic device.
 - Dictionary lookup and lookup history
 - EPUB books can use a dedicated SD-card dictionary font while keeping a different reader font.
 - EPUB books can set a dedicated dictionary font size independently of the reader font size.
@@ -220,8 +245,8 @@
 ### Added
 
 - Dashboard UI theme for the Home screen, showing the current book cover and reading stats.
-- Nearby Position Sync for sending or applying the current EPUB position between two CrossInk devices over ESP-NOW.
-- Web EPUB optimizer support for CrossInk location metadata, so optimized EPUBs can keep better progress and stable page numbers.
+- Nearby Position Sync for sending or applying the current EPUB position between two INKademic devices over ESP-NOW.
+- Web EPUB optimizer support for INKademic location metadata, so optimized EPUBs can keep better progress and stable page numbers.
 - Reading Stats support for XTC and XTCH books, including reader menus, Home and sleep screen stats, mark finished, delete stats, and preserving stats when clearing book caches.
 - Web file manager image previews, so PNG, JPEG, BMP, GIF, and WebP files can be viewed inline before downloading.
 
@@ -270,7 +295,7 @@
 - File Browser now indexes large SD-card folders so directories with many books can be browsed without loading every filename into memory at once.
 - EPUB text clipping with saved highlights, clipping lists, and Kindle-style `/My Clippings.txt` export.
 - `Create Clipping` is now available as a reader shortcut for short/long Power, long-press Menu, and long-press Back actions.
-- Per-book EPUB options for font, layout, styling, reading aids, and render modes, including `CrossInk Default`, `Balanced`, and `Light` modes for difficult books.
+- Per-book EPUB options for font, layout, styling, reading aids, and render modes, including `INKademic Default`, `Balanced`, and `Light` modes for difficult books.
 - Arena allocator (`lib/Memory/Arena.h`) for burst-then-discard allocation patterns - reduces heap fragmentation during EPUB parsing and page layout over long reading sessions.
 - Optimized EPUBs now store location metadata at `META-INF/x-locations.json`.
 - X3 SD-card writes now use the RTC for file timestamps when the clock is available.
@@ -318,7 +343,7 @@
 
 ### Changed
 
-- CrossInk settings now save to `/.crosspoint/crossink-settings.json`, with a one-time fallback migration from `/.crosspoint/settings.json`, so switching between firmware builds is less likely to reset preferences.
+- INKademic settings now save to `/.crosspoint/crossink-settings.json`, with a one-time fallback migration from `/.crosspoint/settings.json`, so switching between firmware builds is less likely to reset preferences.
 - The X3 clock visibility setting is now phrased as `Hide Clock`, with existing `Show Clock` preferences migrated to the matching hide behavior.
 
 ### Fixed
@@ -376,7 +401,7 @@
 ### Added
 
 - EPUB reading-position improvements, including bookmark anchors, bookmark preview snippets, and optional chapter/book time-left estimates.
-- Nearby Reading Stats sync with separate totals for this device and all synced CrossInk readers.
+- Nearby Reading Stats sync with separate totals for this device and all synced INKademic readers.
 - Per-server OPDS filename settings so downloaded books can use either Author - Title or Title - Author.
 - EPUB render heap diagnostics that include the largest allocatable block, not just total free heap.
 
@@ -430,7 +455,7 @@
 
 ### Fixed
 
-- Lyra Carousel is now included by activating the build flag `DCROSSINK_ENABLE_LYRA_CAROUSEL=1`
+- Lyra Carousel is now included by activating the build flag `DINKADEMIC_ENABLE_LYRA_CAROUSEL=1`
 
 ---
 

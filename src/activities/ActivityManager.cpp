@@ -368,7 +368,7 @@ void ActivityManager::goToHotspotFileTransfer(const std::string& returnBookPath)
 }
 
 void ActivityManager::goToUsbDrive() {
-#if CROSSINK_APP_CAP_USB_DRIVE
+#if INKADEMIC_APP_CAP_USB_DRIVE
   replaceActivity(std::make_unique<UsbDriveActivity>(renderer, mappedInput));
 #else
   LOG_ERR("ACT", "USB Drive requested in a build without USB Drive capability");

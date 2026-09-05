@@ -52,7 +52,7 @@ enum class CssFontStyle : uint8_t { Normal = 0, Italic = 1 };
 // Font weight options - CSS supports 100-900, we simplify to normal/bold
 enum class CssFontWeight : uint8_t { Normal = 0, Bold = 1 };
 
-// Font variant caps options matching the small subset CrossInk renders.
+// Font variant caps options matching the small subset INKademic renders.
 enum class CssFontVariantCaps : uint8_t { Normal = 0, SmallCaps = 1 };
 
 // Text decoration options. Values are bit flags so CSS can combine multiple line decorations.

@@ -67,6 +67,9 @@ class ClippingStore {
 
   bool hasClippings() const { return !clippings.empty(); }
   const std::string& getBookFilePath() const { return bookFilePath; }
+  const std::string& getBookTitle() const { return bookTitle; }
+  const std::string& getBookAuthor() const { return bookAuthor; }
+  const std::string& getDocumentId() const { return bookDocumentId; }
   bool hasClippingForPage(uint16_t spineIndex, uint16_t page) const;
   size_t clippingCount() const { return clippings.size(); }
   const Clipping* clippingAt(size_t index) const;

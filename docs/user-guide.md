@@ -3,11 +3,11 @@ title: User Guide
 nav_order: 1.5
 ---
 
-# CrossInk User Guide
+# INKademic User Guide
 
 This guide covers day-to-day device use. For focused reference material, see [Reader Features](./reader-features.md), [Controls](./controls.md), [SD Card Fonts](./sd-card-fonts.md), [File Transfer](./webserver.md), and [Troubleshooting](./troubleshooting.md). For Dashboard and Minimal Home-screen gestures, see [Touch Navigation](./touch-navigation.md).
 
-- [CrossInk User Guide](#crossink-user-guide)
+- [INKademic User Guide](#inkademic-user-guide)
   - [1. Hardware Overview](#1-hardware-overview)
     - [Button Layout](#button-layout)
     - [Taking a Screenshot](#taking-a-screenshot)
@@ -130,7 +130,7 @@ Download links for files already on the device are available in the web interfac
 A **Wi-Fi signal strength indicator** (dBm) is displayed on-screen during joined-network web server sessions.
 
 The same screen also has **Receive File**, which receives a supported
-book or image directly from another nearby CrossInk reader without joining a
+book or image directly from another nearby INKademic reader without joining a
 Wi-Fi network. See [Nearby File Transfer](./nearby-file-transfer.md) for the
 complete sender and receiver workflow.
 
@@ -146,7 +146,7 @@ disconnect behavior.
 
 ### 3.5.1 Calibre Wireless Transfers
 
-CrossInk supports sending books from Calibre using the CrossPoint Reader device plugin.
+INKademic supports sending books from Calibre using the CrossPoint Reader device plugin.
 
 1. Download the current `crosspoint_reader` plugin ZIP from the
    [CrossPoint Reader plugin releases](https://github.com/crosspoint-reader/calibre-plugins/releases).
@@ -165,7 +165,7 @@ device model and build.
 #### 3.6.1 Display
 
 - **Sleep Screen**: Which sleep screen to display when the device sleeps:
-  - "Dark" (default) - The default dark CrossInk logo sleep screen
+  - "Dark" (default) - The default dark INKademic logo sleep screen
   - "Light" - The same default sleep screen, on a white background
   - "Custom" - Custom images from the SD card; see [Sleep Screen](#37-sleep-screen) below for more information
   - "Cover" - The book cover image (Note: this is experimental and may not work as expected)
@@ -321,7 +321,7 @@ device model and build.
 - **Check for Updates** and **SD Firmware Update**: Check for firmware updates
   over Wi-Fi or install a `firmware.bin` placed on the SD card.
 
-- **Language**: Set the UI language. CrossInk supports 28 languages: English,
+- **Language**: Set the UI language. INKademic supports 28 languages: English,
   Spanish, French, German, Czech, Brazilian Portuguese, Russian, Swedish,
   Romanian, Catalan, Ukrainian, Belarusian, Italian, Polish, Finnish, Danish,
   Dutch, Turkish, Kazakh, Hungarian, Lithuanian, Slovenian, Valencian, Hebrew,
@@ -329,7 +329,7 @@ device model and build.
 
 #### 3.6.5 OPDS Servers (Multiple Libraries)
 
-CrossInk supports saving multiple OPDS servers and switching between them when browsing catalogs.
+INKademic supports saving multiple OPDS servers and switching between them when browsing catalogs.
 
 New installations include **Project Gutenberg** as a bundled catalog. Existing OPDS
 configurations receive it once during the upgrade; deleting it from OPDS Servers
@@ -380,17 +380,17 @@ Behavior notes:
 
 #### 3.6.7 KOReader Sync Quick Setup
 
-CrossInk can sync reading progress with KOReader-compatible sync servers.
+INKademic can sync reading progress with KOReader-compatible sync servers.
 It also interoperates with KOReader apps/devices when they use the same server and credentials.
 
 ##### Option A: CrossPoint Sync Server (`sync.crosspointreader.com`, default)
 
-When **Sync Server URL** is left empty, CrossInk uses the free CrossPoint sync server at `https://sync.crosspointreader.com`. It speaks the standard KOReader sync protocol (so KOReader apps can use it too) and additionally stores an exact spine/page position for lossless CrossInk-to-CrossInk sync.
+When **Sync Server URL** is left empty, INKademic uses the free CrossPoint sync server at `https://sync.crosspointreader.com`. It speaks the standard KOReader sync protocol (so KOReader apps can use it too) and additionally stores an exact spine/page position for lossless INKademic-to-INKademic sync.
 
-1. On each CrossInk device:
+1. On each INKademic device:
    - Go to **Settings -> System -> KOReader Sync**.
 
-   - Set **Username** and **Password** (enter the plain password; CrossInk computes MD5 internally, and use the same values on all devices).
+   - Set **Username** and **Password** (enter the plain password; INKademic computes MD5 internally, and use the same values on all devices).
 
    - Leave **Sync Server URL** empty (or set it to `https://sync.crosspointreader.com`).
 
@@ -402,7 +402,7 @@ Accounts are per server. Existing `sync.koreader.rocks` credentials do not exist
 
 Use this if you already sync KOReader devices against the official public server.
 
-1. On each CrossInk device:
+1. On each INKademic device:
    - Go to **Settings -> System -> KOReader Sync**.
 
    - Set **Sync Server URL** to `https://sync.koreader.rocks` (required; an empty URL now points at the CrossPoint server instead).
@@ -466,7 +466,7 @@ curl -H "Accept: application/vnd.koreader.v1+json" "http://<server-ip>:17200/hea
 ```
 
 3. Register a user once.
-   CrossInk authenticates against KOReader Sync (`koreader/kosync`) using an MD5 key, so register using the MD5 of your password:
+   INKademic authenticates against KOReader Sync (`koreader/kosync`) using an MD5 key, so register using the MD5 of your password:
 
 > [!WARNING]
 > Sending a reusable MD5-derived password over plain HTTP is insecure.
@@ -490,7 +490,7 @@ If this returns `HTTP 402` with `{"code":2002,"message":"Username is already reg
 4. On each device:
    - Go to **Settings -> System -> KOReader Sync**.
 
-   - Set **Username** and **Password** (enter the plain password; CrossInk computes MD5 internally, and use the same values on all devices).
+   - Set **Username** and **Password** (enter the plain password; INKademic computes MD5 internally, and use the same values on all devices).
 
    - Set **Sync Server URL** to `http://<server-ip>:17200`.
 
@@ -503,7 +503,7 @@ If you use the HTTPS listener, use `https://<server-ip>:7200` (`curl -k` only fo
 Once any of the options above is set up, press **Confirm** while reading to open the reader menu, then select **Sync Progress**. Alternatively, set **Settings -> Controls -> Long-press Menu** to **KOSync** and hold Confirm to launch sync directly.
 
 - With **Sync Behavior** set to **Ask every time**, choose **Apply Remote** to jump to remote progress or **Upload Local** to push current progress.
-- With **Sync Behavior** set to **Smart sync**, CrossInk auto-resolves simple cases: upload when no remote progress exists, confirm and leave both unchanged when local and remote progress are already synchronized, upload when local progress is further ahead, or apply remote when remote progress is further ahead.
+- With **Sync Behavior** set to **Smart sync**, INKademic auto-resolves simple cases: upload when no remote progress exists, confirm and leave both unchanged when local and remote progress are already synchronized, upload when local progress is further ahead, or apply remote when remote progress is further ahead.
 
 ### 3.7 Sleep Screen
 
@@ -511,8 +511,8 @@ The **Sleep Screen** setting controls what is displayed when the device goes to 
 
 | Mode               | Behavior                                                                                                                     |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| **Dark** (default) | The CrossInk logo on a dark background.                                                                                      |
-| **Light**          | The CrossInk logo on a white background.                                                                                     |
+| **Dark** (default) | The INKademic logo on a dark background.                                                                                      |
+| **Light**          | The INKademic logo on a white background.                                                                                     |
 | **Custom**         | A custom image from the SD card (see below). Falls back to **Dark** if no custom image is found.                             |
 | **Cover**          | The cover of the currently open book. Falls back to **Dark** if no book is open.                                             |
 | **Cover + Custom** | The cover of the currently open book, shown only while actively reading. Falls back to **Custom** behavior when not reading. |
@@ -548,13 +548,13 @@ To use custom sleep images, set the sleep screen mode to **Custom** or **Cover +
 
 ### 3.8 Custom Fonts (SD Card)
 
-CrossInk supports loading additional fonts from the SD card, extending beyond the built-in Lexend Deca and Bitter families. Custom fonts can include extended Unicode coverage, enabling CJK (Chinese, Japanese, Korean) and other scripts.
+INKademic supports loading additional fonts from the SD card, extending beyond the built-in Lexend Deca and Bitter families. Custom fonts can include extended Unicode coverage, enabling CJK (Chinese, Japanese, Korean) and other scripts.
 
 There are three ways to install fonts:
 
 1. **Download from device (recommended):** Go to **Settings -> Reader -> Font Options -> Manage Fonts**, browse the available font families, and select one to download over Wi-Fi.
 2. **Upload via web interface:** While in **File Transfer** mode, open the web UI in a browser and navigate to the **Fonts** tab to upload `.cpfont` files.
-3. **Manual SD card copy:** Download font files from the [CrossInk-fonts repository](https://github.com/uxjulia/crossink-fonts/releases) and copy them to `/.fonts/` (preferred) or `/fonts/` on your SD card.
+3. **Manual SD card copy:** Download font files from the [INKademic-fonts repository](https://github.com/uxjulia/crossink-fonts/releases) and copy them to `/.fonts/` (preferred) or `/fonts/` on your SD card.
 
 Once installed, custom fonts appear in **Settings -> Reader -> Font Options -> Font Family** alongside the built-in fonts.
 
@@ -632,7 +632,7 @@ If the device goes to sleep or you close the book while viewing a footnote, the 
 
 ### Supported Languages
 
-CrossInk renders text using the following Unicode character blocks, enabling support for a wide range of languages:
+INKademic renders text using the following Unicode character blocks, enabling support for a wide range of languages:
 
 - **Latin Script (Basic, Supplement, Extended-A/B):** Covers English, German, French, Spanish, Portuguese, Italian, Dutch, Swedish, Norwegian, Danish, Finnish, Polish, Czech, Hungarian, Romanian, Slovak, Slovenian, Turkish, Catalan, and others.
 - **Cyrillic Script (Standard and Extended):** Covers Russian, Ukrainian, Belarusian, Bulgarian, Serbian, Macedonian, Kazakh, Kyrgyz, Mongolian, and others.
@@ -706,9 +706,9 @@ Please note that this firmware is currently in active development. The following
 
 ## 7. Troubleshooting Issues & Escaping Bootloop
 
-If an issue or crash is encountered while using CrossInk, feel free to raise an issue ticket and attach the logs.
+If an issue or crash is encountered while using INKademic, feel free to raise an issue ticket and attach the logs.
 
-**Crash reports on SD card:** After a crash, CrossInk automatically saves a crash report to the SD card (no USB connection needed). Check the root of the SD card for a crash log file and include it with any bug report.
+**Crash reports on SD card:** After a crash, INKademic automatically saves a crash report to the SD card (no USB connection needed). Check the root of the SD card for a crash log file and include it with any bug report.
 
 **Serial monitor logs:** For more detailed debugging, connect the device to a computer and run the custom debugging monitor script (requires Python 3 with `pyserial`, `colorama`, and `matplotlib`; install via `pip3 install pyserial colorama matplotlib`):
 

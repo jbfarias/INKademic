@@ -152,7 +152,7 @@ void HalGPIO::begin() {
                             : x3IsUc8279  ? BoardConfig::Board::XteinkX3Uc8279
                                           : BoardConfig::Board::XteinkX3);
 
-  // CrossInk's X3 override/cache remains authoritative. X4 has no equivalent
+  // INKademic's X3 override/cache remains authoritative. X4 has no equivalent
   // local override, so use the SDK's factory-aware controller selection before
   // SPI claims the display pins.
   if (deviceIsX4()) {
@@ -199,7 +199,7 @@ unsigned long HalGPIO::getHeldTime() const { return inputMgr.getHeldTime(); }
 
 unsigned long HalGPIO::getPowerButtonHeldTime() const { return inputMgr.getPowerButtonHeldTime(); }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 bool HalGPIO::hasTouch() const { return inputMgr.hasTouch(); }
 
 bool HalGPIO::hasHomeKey() const { return BoardConfig::hasHomeKey(); }

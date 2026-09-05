@@ -160,7 +160,7 @@ struct ReaderSettingsBin {
     u8 version; // 7
     u8 flags;   // bit 0 = custom reader settings, bit 1 = custom auto-page-turn interval, bit 2 = render mode override, bit 3 = dictionary font override
     u16 autoPageTurnSeconds;
-    u8 renderMode; // 0 = CrossInk Default, 1 = Balanced, 2 = Light
+    u8 renderMode; // 0 = INKademic Default, 1 = Balanced, 2 = Light
 
     u8 fontFamily;
     u8 readerFontPointSize; // physical point size; versions 2-5 stored a size slot
@@ -208,7 +208,7 @@ load, current firmware migrates version 4 to version 3 plus the sidecar. Older
 firmware can then see every clipping and its preview; returning to Academic
 restores the full text and tag.
 
-CrossInk uses the stored spine/page/paragraph fields as anchors and the saved
+INKademic uses the stored spine/page/paragraph fields as anchors and the saved
 text to relocate highlights after reflow. Creating a clipping also appends the
 complete selection and optional tag to `/My Clippings.txt`; that export is
 append-only.
@@ -291,7 +291,7 @@ their own per-book stats files without overwriting each other. Version 5 extends
 version 4 with a cached live reader book time-left estimate so Home and Reading
 Stats can show the same estimate the reader last computed.
 
-When `stats_v5.bin` is missing, CrossInk can read the previous versioned stats
+When `stats_v5.bin` is missing, INKademic can read the previous versioned stats
 filename (`stats_v4.bin` for version 5, `stats_v5.bin` after a future version 6
 bump) before falling back to legacy `stats.bin` files with compatible stats
 payloads. Future changes are always saved to the current versioned filename.
@@ -634,7 +634,7 @@ struct SectionBin {
     bool bionicReadingEnabled;
     bool guideReadingEnabled;
     u8 wordSpacing;
-    u8 renderMode; // 0 = CrossInk Default, 1 = Balanced, 2 = Light
+    u8 renderMode; // 0 = INKademic Default, 1 = Balanced, 2 = Light
 
     u16 pageCount;
     u32 protectedImageUnits;

@@ -47,7 +47,12 @@ size_t zipFillCallback(void* vctx, const uint8_t** data) {
   if (ctx->fileRemaining == 0) return 0;
 
   const size_t toRead = ctx->fileRemaining < ctx->readBufSize ? ctx->fileRemaining : ctx->readBufSize;
-  const size_t bytesRead = ctx->file->read(ctx->readBuf, toRead);
+  const int result = ctx->file->read(ctx->readBuf, toRead);
+  if (result < 0 || static_cast<size_t>(result) > toRead) {
+    LOG_ERR("ZIP", "Failed to read compressed data: %d", result);
+    return 0;
+  }
+  const size_t bytesRead = static_cast<size_t>(result);
   ctx->fileRemaining -= bytesRead;
 
   *data = ctx->readBuf;
@@ -59,7 +64,12 @@ size_t zipStreamFillCallback(void* vctx, const uint8_t** data) {
   if (!ctx->file || ctx->fileRemaining == 0) return 0;
 
   const size_t toRead = ctx->fileRemaining < ctx->readBufSize ? ctx->fileRemaining : ctx->readBufSize;
-  const size_t bytesRead = ctx->file->read(ctx->readBuf, toRead);
+  const int result = ctx->file->read(ctx->readBuf, toRead);
+  if (result < 0 || static_cast<size_t>(result) > toRead) {
+    LOG_ERR("ZIP", "Failed to read cooperative compressed data: %d", result);
+    return 0;
+  }
+  const size_t bytesRead = static_cast<size_t>(result);
   ctx->fileRemaining -= bytesRead;
 
   *data = ctx->readBuf;
@@ -151,8 +161,13 @@ ZipStreamStatus ZipFileStreamReader::pump(Print& out, const size_t maxOutputByte
       active = false;
       return ZipStreamStatus::Done;
     }
-    const size_t dataRead = zipFile.read(outputBuffer, toRead);
+    const int result = zipFile.read(outputBuffer, toRead);
     zipFile.close();
+    if (result < 0 || static_cast<size_t>(result) > toRead) {
+      LOG_ERR("ZIP", "Failed to read stored data: %d", result);
+      return ZipStreamStatus::Error;
+    }
+    const size_t dataRead = static_cast<size_t>(result);
     if (dataRead == 0 || out.write(outputBuffer, dataRead) != dataRead) {
       return ZipStreamStatus::Error;
     }

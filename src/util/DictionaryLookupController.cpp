@@ -26,7 +26,7 @@ DictionaryLookupController::DictionaryLookupController(GfxRenderer& renderer, Ma
       mappedInput(mappedInput),
       owner(owner),
       cachePath(cachePath)
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
       ,
       altFormUiTarget(makeUiTarget(renderer)),
       altFormUiApp(altFormUiTarget, altFormUiTarget.deviceContext())
@@ -125,7 +125,7 @@ DictionaryLookupController::LookupEvent DictionaryLookupController::handleInput(
       if (Dictionary::hasAltForms(cachePath.c_str())) {
         altFormWord = lookupWord;
         state = LookupState::AltFormPrompt;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
         altFormUiReady = false;
         applySharedUiTheme(altFormUiApp, altFormUiTarget);
         altFormUiApp.setScreen(&DictionaryLookupController::altFormPromptScreen, this);
@@ -147,7 +147,7 @@ DictionaryLookupController::LookupEvent DictionaryLookupController::handleInput(
   }
 
   if (state == LookupState::AltFormPrompt) {
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     freeink::ui::ActionId touchAction = freeink::ui::NO_ACTION;
     const bool headerTapped = TouchHeaderBackButton::wasTapped(mappedInput, renderer);
     if (altFormUiReady && mappedInput.hasTouch()) {
@@ -157,7 +157,7 @@ DictionaryLookupController::LookupEvent DictionaryLookupController::handleInput(
     }
 #endif
     if (mappedInput.wasReleased(MappedInputManager::Button::Confirm)
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
         || touchAction == ACTION_ALT_FORM_YES
 #endif
     ) {
@@ -177,7 +177,7 @@ DictionaryLookupController::LookupEvent DictionaryLookupController::handleInput(
       return LookupEvent::None;
     }
     if (mappedInput.wasReleased(MappedInputManager::Button::Back)
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
         || headerTapped || touchAction == ACTION_ALT_FORM_NO
 #endif
     ) {
@@ -189,7 +189,7 @@ DictionaryLookupController::LookupEvent DictionaryLookupController::handleInput(
   }
 
   if (state == LookupState::NotFound || state == LookupState::ReadError) {
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     int touchX = 0;
     int touchY = 0;
     const Rect switchRect = dictionarySwitchTouchRect(renderer);
@@ -218,7 +218,7 @@ DictionaryLookupController::LookupEvent DictionaryLookupController::handleInput(
   return LookupEvent::None;
 }
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 void DictionaryLookupController::altFormPromptScreen(AltFormUiApp::ScreenType& screen, void* user) {
   static_cast<DictionaryLookupController*>(user)->buildAltFormPromptScreen(screen);
 }
@@ -249,7 +249,7 @@ bool DictionaryLookupController::render() {
   if (state == LookupState::AltFormPrompt) {
     const int pageWidth = renderer.getScreenWidth();
     const Rect header{0, metrics.topPadding, pageWidth, TouchHeaderBackButton::height(metrics, mappedInput)};
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     if (mappedInput.hasTouchHardware()) {
       TouchHeaderBackButton::draw(renderer, altFormUiTarget, header, tr(STR_DICT_SEARCH_ALT_FORMS), true);
     } else
@@ -260,7 +260,7 @@ bool DictionaryLookupController::render() {
     const int y = metrics.topPadding + TouchHeaderBackButton::height(metrics, mappedInput) + metrics.verticalSpacing +
                   renderer.getLineHeight(UI_10_FONT_ID);
     renderer.drawCenteredText(UI_10_FONT_ID, y, altFormWord.c_str());
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     if (mappedInput.hasTouch()) {
       altFormUiReady = false;
       altFormUiApp.render();
@@ -278,7 +278,7 @@ bool DictionaryLookupController::render() {
   if (state == LookupState::NotFound || state == LookupState::ReadError) {
     const char* message = state == LookupState::ReadError ? tr(STR_DICT_READ_FAILED) : tr(STR_DICT_NOT_FOUND);
     GUI.drawPopup(renderer, message);
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
     if (mappedInput.hasTouch()) {
       const Rect switchRect = dictionarySwitchTouchRect(renderer);
       renderer.drawLine(switchRect.x, switchRect.y, switchRect.x + switchRect.width, switchRect.y, true);

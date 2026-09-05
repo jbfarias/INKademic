@@ -89,7 +89,7 @@ class ChapterHtmlSlimParser {
   bool lowMemoryImageFallback = false;
   bool lowMemoryAbort = false;
   bool attemptedTextLayoutFontCacheRelease = false;
-  EpubRenderMode renderMode = EpubRenderMode::CrossInkDefault;
+  EpubRenderMode renderMode = EpubRenderMode::InkademicDefault;
   std::string previewAnchor;
   uint16_t previewMaxPages = 0;
   bool previewAnchorFound = false;
@@ -261,8 +261,8 @@ class ChapterHtmlSlimParser {
   void locatePreviewBlockStart();
   void startPreviewAtAnchor();
   void stopPreviewIfPageLimitReached();
-  bool usesSimpleCssLookup() const { return renderMode != EpubRenderMode::CrossInkDefault; }
-  bool flattensTables() const { return renderMode != EpubRenderMode::CrossInkDefault; }
+  bool usesSimpleCssLookup() const { return renderMode != EpubRenderMode::InkademicDefault; }
+  bool flattensTables() const { return renderMode != EpubRenderMode::InkademicDefault; }
   bool isLightMode() const { return renderMode == EpubRenderMode::Light; }
   bool honorsPublisherDecorations() const { return renderMode != EpubRenderMode::Light; }
   void pushCssAncestor(int depth, const char* tag, std::string_view classAttr);
@@ -308,7 +308,7 @@ class ChapterHtmlSlimParser {
       const bool embeddedStyle, const std::string& contentBase, const std::string& imageBasePath,
       const uint8_t imageRendering = 0, std::vector<std::string> tocAnchors = {},
       const std::function<void()>& popupFn = nullptr, CssParser* cssParser = nullptr,
-      const EpubRenderMode renderMode = EpubRenderMode::CrossInkDefault, std::string previewAnchor = {},
+      const EpubRenderMode renderMode = EpubRenderMode::InkademicDefault, std::string previewAnchor = {},
       const uint16_t previewMaxPages = 0)
 
       : epub(&epub),

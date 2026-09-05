@@ -24,7 +24,7 @@ class EpubReaderPercentSelectionActivity final : public Activity {
 
  private:
   // FreeInkApp hosts the slider, four coarse/fine touch step controls, and the
-  // touch Cancel/Confirm pair. The shared CrossInk back header stays separate.
+  // touch Cancel/Confirm pair. The shared INKademic back header stays separate.
   // 7 interactions with one spare slot; 4 semantic handlers.
   using UiApp = freeink::ui::FreeInkApp<8, 4>;
 

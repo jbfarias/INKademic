@@ -1,4 +1,4 @@
-# CrossInk — Shared Agent Guide
+# INKademic — Shared Agent Guide
 
 This is the canonical repo instruction file.
 `CLAUDE.md` should point here so Codex and Claude read the same guidance.
@@ -135,7 +135,7 @@ Project: Open-source e-reader firmware for ESP32-C3 and ESP32-S3 devices.
 
 - Check `git status --short` before edits and before reporting results. Preserve unrelated user changes.
 - When resolving merge, rebase, or cherry-pick conflicts, inspect the relevant commit messages for upstream PR references such as `#2608`. Open the PR in its source repository and read its description and changed files before resolving the conflict so the intended behavior is understood.
-- Do not resolve conflicts by automatically keeping CrossInk's current implementation or by discarding the upstream change wholesale. Preserve or adapt the upstream intent unless it is already fully implemented, would introduce a regression, or would substantially and unjustifiably change CrossInk's UX or behavior. When rejecting an upstream change, state the concrete reason.
+- Do not resolve conflicts by automatically keeping INKademic's current implementation or by discarding the upstream change wholesale. Preserve or adapt the upstream intent unless it is already fully implemented, would introduce a regression, or would substantially and unjustifiably change INKademic's UX or behavior. When rejecting an upstream change, state the concrete reason.
 - If a referenced PR cannot be accessed, inspect the source commit diff and nearby history, then report that the PR intent could not be verified instead of guessing.
 - Do not commit unless the user explicitly asks or committing is part of the skill utilized.
 - Before staging, ensure ignored/generated/local files such as `.pio/`, `*.generated.h`, `compile_commands.json`, and `platformio.local.ini` are not included.

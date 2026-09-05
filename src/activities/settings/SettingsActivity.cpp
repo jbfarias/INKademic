@@ -76,7 +76,7 @@ bool useLandscapeTouchLayout(const GfxRenderer& renderer) {
   // Layout is an app capability decision, not a live GT911 probe or SDK board
   // profile result. The simulator supplies touch through its own device
   // profile, while firmware can construct Settings during touch reinitialization.
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   return renderer.getScreenWidth() > renderer.getScreenHeight();
 #else
   return false;
@@ -138,7 +138,7 @@ std::string formatCompactDuration(const uint32_t seconds) {
 
 void drawSystemVersionFooter(const GfxRenderer& renderer, const int pageWidth, const int pageHeight,
                              const ThemeMetrics& metrics) {
-  const std::string label = "CrossInk " CROSSINK_VERSION;
+  const std::string label = "INKademic " INKADEMIC_VERSION;
   const int maxWidth = pageWidth - systemVersionFooterSideMargin * 2;
   const int bottomLineY =
       pageHeight - metrics.buttonHintsHeight - metrics.verticalSpacing - systemVersionFooterBottomInset;
@@ -281,7 +281,7 @@ void SettingsActivity::rebuildSettingsLists() {
   controlsSettings = buildControlsSettingsParentList(allSettings);
   controlsPowerSettings = buildControlsPowerSettingsList(allSettings);
   controlsHomeButtonSettings = buildControlsHomeButtonSettingsList(allSettings);
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (!gpio.hasTouch()) {
     controlsFrontButtonSettings = buildControlsFrontButtonSettingsList(allSettings);
   }
@@ -778,7 +778,7 @@ void SettingsActivity::loop() {
   // Swipes scroll the viewport; the selection stays put (it may scroll
   // off-screen) and button navigation pulls the view back to it.
   const auto swipe = mappedInput.wasSwipe();
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   const bool landscapeTouch = useLandscapeTouchLayout(renderer);
   // The frontlight shortcut keeps its quick exit in landscape, but only from
   // the X4 Pro's lower-edge gesture band. Other upward swipes scroll the list.
@@ -1145,7 +1145,7 @@ void SettingsActivity::settingsScreen(UiApp::ScreenType& screen, void* user) {
 
 void SettingsActivity::buildSettingsScreen(UiApp::ScreenType& screen) {
   const auto& metrics = UITheme::getInstance().getMetrics();
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   const bool landscapeTouch = useLandscapeTouchLayout(renderer);
 #endif
   // Content starts directly below the compact header divider.
@@ -1218,7 +1218,7 @@ void SettingsActivity::buildSettingsScreen(UiApp::ScreenType& screen) {
     tabStyles.active = tabStyles.selected;
     tabProps.tabStyles = tabStyles;
   }
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (landscapeTouch) {
     // Landscape has width to spare but little vertical room. Keep categories
     // in a left rail so the settings list can use the full remaining height.

@@ -14,7 +14,7 @@ inline bool deviceHasEdgeSideButtons(const HalGPIO& gpio) {
 
 inline bool deviceUsesSideButtonHintGutters(const HalGPIO& gpio) {
   if (!deviceHasEdgeSideButtons(gpio)) return false;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   return !gpio.hasTouch();
 #else
   return true;

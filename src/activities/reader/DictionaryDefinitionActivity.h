@@ -181,7 +181,7 @@ class DictionaryDefinitionActivity final : public Activity {
   // the same bounded storage only if the user enters definition word-select.
   std::unique_ptr<WordSelectNavigator::HighlightSnapshotStorage> ownedHighlightSnapshotStorage_;
   DictionaryLookupController controller;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   bool touchDragLookup_ = false;
 #endif
 
@@ -204,7 +204,7 @@ class DictionaryDefinitionActivity final : public Activity {
   static void collectSpanForAdvances(void* ctx, const StyledSpan& span);
   void extractWordsFromLayout();
   void openDictionarySwitch();
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   bool showTouchDictionarySwitch() const;
   bool dictionarySwitchButtonContains(int x, int y) const;
   bool modalContains(int x, int y) const;

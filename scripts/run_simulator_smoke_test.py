@@ -78,11 +78,11 @@ def run_smoke(args: argparse.Namespace) -> int:
         simulator_book_path = prepare_fs(temp_root, book)
 
         env = os.environ.copy()
-        env["CROSSINK_SIMULATOR_SMOKE_TEST"] = "1"
-        env["CROSSINK_SIMULATOR_SMOKE_BOOK"] = simulator_book_path
-        env["CROSSINK_SIMULATOR_SMOKE_PAGE_TURNS"] = str(args.page_turns)
+        env["INKADEMIC_SIMULATOR_SMOKE_TEST"] = "1"
+        env["INKADEMIC_SIMULATOR_SMOKE_BOOK"] = simulator_book_path
+        env["INKADEMIC_SIMULATOR_SMOKE_PAGE_TURNS"] = str(args.page_turns)
         if args.theme:
-            env["CROSSINK_SIMULATOR_SMOKE_THEME"] = str(THEMES[args.theme])
+            env["INKADEMIC_SIMULATOR_SMOKE_THEME"] = str(THEMES[args.theme])
         if args.headless:
             env.setdefault("SDL_VIDEODRIVER", "dummy")
 

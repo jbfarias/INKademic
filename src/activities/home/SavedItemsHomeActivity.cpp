@@ -87,7 +87,7 @@ void SavedItemsHomeActivity::reloadSavedBooks() {
     mergeClippingEntry(books, entry);
   }
 
-  // CrossInk Notes: a stored title can be blank (an upstream finished-book move
+  // INKademic Notes: a stored title can be blank (an upstream finished-book move
   // can blank it — see CHANGELOG v1.1.1), which would render an invisible row.
   // Fall back to the file name so the entry is always readable. Done here rather
   // than at draw time so menus and headers get the same name.
@@ -101,7 +101,7 @@ void SavedItemsHomeActivity::reloadSavedBooks() {
     b.bookTitle = name.empty() ? p : name;
   }
 
-  // CrossInk Notes: show what each book actually holds. Highlight and bookmark
+  // INKademic Notes: show what each book actually holds. Highlight and bookmark
   // counts come free with the entries; the note count needs that book's notes
   // file, read once here rather than per frame.
   for (auto& b : books) {
@@ -306,7 +306,7 @@ void SavedItemsHomeActivity::buildListScreen(UiApp::ScreenType& screen) {
   const fui::Rect bounds = screen.body();
   listTop = bounds.y;
   listBottom = bounds.bottom();
-  // CrossInk Notes: three-line rows (title / author / counts) — see
+  // INKademic Notes: three-line rows (title / author / counts) — see
   // NotesListLayout for why the third line lives in the row gap and why the
   // selection is inverted rather than painted by the widget.
   const auto rows = notesLayout.configure(props, uiTarget, screen.theme(), bounds, renderer, mappedInput,
@@ -330,7 +330,7 @@ void SavedItemsHomeActivity::buildListScreen(UiApp::ScreenType& screen) {
 void SavedItemsHomeActivity::render(RenderLock&&) {
   renderer.clearScreen();
 
-  // CrossInk Notes: this screen lists notes/tags alongside bookmarks, so it
+  // INKademic Notes: this screen lists notes/tags alongside bookmarks, so it
   // keeps the CrossNotes name rather than upstream's "Bookmarks and Clippings".
   if (mappedInput.hasTouchHardware()) {
     TouchHeaderBackButton::drawCompact(renderer, tr(STR_NOTES_AND_BOOKMARKS));
@@ -341,7 +341,7 @@ void SavedItemsHomeActivity::render(RenderLock&&) {
   app.render();
   uiReady = true;
 
-  // CrossInk Notes: counts line, then the selection over the whole entry.
+  // INKademic Notes: counts line, then the selection over the whole entry.
   if (notesLayout.ready()) {
     const int total = static_cast<int>(books.size());
     const int end = std::min(total, topIndex + visibleRows);
@@ -466,7 +466,7 @@ void SavedItemsHomeActivity::showSavedBookActionMenu(const int bookIndex, const 
                 if (!confirmation.isCancelled) {
                   CLIPPINGS.loadForBook(entry.bookPath, entry.bookTitle, entry.bookAuthor, entry.bookType);
                   CLIPPINGS.clearAll();
-                  // CrossInk Notes: clearing a book's clippings also clears its
+                  // INKademic Notes: clearing a book's clippings also clears its
                   // notes/tags, since notes anchor to clippings that are gone.
                   NoteStore::deleteForFilePath(entry.bookPath);
                 }

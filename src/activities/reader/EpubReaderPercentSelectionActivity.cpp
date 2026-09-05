@@ -178,7 +178,7 @@ void EpubReaderPercentSelectionActivity::buildPercentScreen(UiApp::ScreenType& s
   const auto& metrics = UITheme::getInstance().getMetrics();
   const auto& theme = screen.theme();
   const Rect safe = UITheme::getInstance().getScreenSafeArea(renderer, true, false);
-  // Start below CrossInk's shared back header; its touch-device height differs from
+  // Start below INKademic's shared back header; its touch-device height differs from
   // the legacy theme header height.
   screen.setContentMargin(fui::Insets{
       static_cast<int16_t>(safe.y + metrics.topPadding + TouchHeaderBackButton::height(metrics, mappedInput) +
@@ -208,7 +208,7 @@ void EpubReaderPercentSelectionActivity::buildPercentScreen(UiApp::ScreenType& s
   fui::slider(screen.frame(), row, props);
 
   if (mappedInput.hasTouch()) {
-    // Preserve CrossInk's four direct coarse/fine step controls, but let the
+    // Preserve INKademic's four direct coarse/fine step controls, but let the
     // FreeInkApp own both their rendering and hit testing.
     constexpr int16_t deltas[] = {-kLargeStep, -kSmallStep, kSmallStep, kLargeStep};
     constexpr const char* labels[] = {"-10", "-1", "+1", "+10"};

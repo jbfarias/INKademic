@@ -8,12 +8,12 @@ Default outputs:
   .pio/build/sticky/firmware-sticky.bin
   .pio/build/x4-pro/firmware-x4-pro.bin
 
-Release-candidate outputs when CROSSINK_RC_ARTIFACTS=1:
+Release-candidate outputs when INKADEMIC_RC_ARTIFACTS=1:
   .pio/build/default/firmware-x3-x4-<branch>-<hash>-RC.bin
   .pio/build/sticky/firmware-sticky-<branch>-<hash>-RC.bin
   .pio/build/x4-pro/firmware-x4-pro-<branch>-<hash>-RC.bin
 
-Release outputs when CROSSINK_RELEASE_VERSION is set:
+Release outputs when INKADEMIC_RELEASE_VERSION is set:
   .pio/build/default/firmware-x3-x4-v<version>.bin
   .pio/build/x4-pro/firmware-x4-pro-v<version>.bin
   .pio/build/sticky/firmware-sticky-v<version>.bin
@@ -90,12 +90,12 @@ def _get_rc_artifact_name(project_dir, env):
     device_type = _get_firmware_device_type(env)
     branch = (
         _get_project_option(env, 'custom_rc_branch')
-        or os.environ.get('CROSSINK_RC_BRANCH')
+        or os.environ.get('INKADEMIC_RC_BRANCH')
         or _get_git_branch(project_dir)
     )
     short_hash = (
         _get_project_option(env, 'custom_rc_hash')
-        or os.environ.get('CROSSINK_RC_HASH')
+        or os.environ.get('INKADEMIC_RC_HASH')
         or _get_git_value(
         project_dir,
         'rev-parse',
@@ -110,12 +110,12 @@ def _get_rc_artifact_name(project_dir, env):
 
 
 def _is_rc_artifact_build(env):
-    flag = _get_project_option(env, 'custom_rc_artifacts') or os.environ.get('CROSSINK_RELEASE_VERSION')
+    flag = _get_project_option(env, 'custom_rc_artifacts') or os.environ.get('INKADEMIC_RELEASE_VERSION')
     return str(flag).strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
 def _get_release_version(env):
-    version = _get_project_option(env, 'custom_release_version') or os.environ.get('CROSSINK_RELEASE_VERSION')
+    version = _get_project_option(env, 'custom_release_version') or os.environ.get('INKADEMIC_RELEASE_VERSION')
     if not version:
         return None
     version = version.strip()

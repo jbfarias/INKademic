@@ -239,9 +239,9 @@ uint8_t migrateTiltDirectionValue(const uint8_t direction) {
 
 const char* CrossPointSettings::getDefaultDeviceName() {
   if (BoardConfig::isSticky()) return "Sticky";
-  if (gpio.deviceIsX3()) return "CrossInk Academic X3";
-  if (gpio.deviceIsX4()) return "CrossInk Academic X4";
-  return "CrossInk Academic";
+  if (gpio.deviceIsX3()) return "INKademic X3";
+  if (gpio.deviceIsX4()) return "INKademic X4";
+  return "INKademic";
 }
 
 const char* CrossPointSettings::getEffectiveDeviceName() const {
@@ -690,7 +690,7 @@ bool CrossPointSettings::loadFromFile() {
     return JsonLoadStatus::MissingOrEmpty;
   };
 
-  // Prefer CrossInk's namespaced settings file. Use the old generic file only
+  // Prefer INKademic's namespaced settings file. Use the old generic file only
   // as a migration fallback so other firmware can keep its own settings.json.
   JsonLoadStatus jsonStatus = loadJsonSettings(SETTINGS_FILE_JSON, false);
   if (jsonStatus != JsonLoadStatus::MissingOrEmpty) return jsonStatus == JsonLoadStatus::Loaded;

@@ -503,7 +503,7 @@ fui::Rect KeyboardEntryActivity::keyboardRect() const {
 }
 
 void KeyboardEntryActivity::loop() {
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   if (TouchHeaderBackButton::wasTapped(mappedInput, renderer)) {
     onCancel();
     return;

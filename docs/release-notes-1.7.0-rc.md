@@ -1,4 +1,4 @@
-# CrossInk Academic v1.7.0-rc
+# INKademic v1.7.0-rc
 
 Release candidate dated 23 August 2026.
 
@@ -13,7 +13,7 @@ Release candidate dated 23 August 2026.
 ## What changed
 
 - Academic notes, highlights, clippings, bookmarks, and annotation tags remain enabled in every device build.
-- X4 Pro receives the same CrossInk Academic feature set as X3/X4, including touch-aware navigation and annotations.
+- X4 Pro receives the same INKademic feature set as X3/X4, including touch-aware navigation and annotations.
 - Added a physical X4 Pro validation matrix covering touch, page turns, frontlight, menus, notes, highlights, tags, and persistence.
 - Added host-side memory-budget regression tests for EPUB image decoding, JPEG buffers, and SD-card font lifecycle handling.
 - Kept BookOrbit synchronization out of the firmware core for this release candidate; the existing KOReader Sync path remains unchanged.

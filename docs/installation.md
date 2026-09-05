@@ -32,7 +32,7 @@ removed.
 
 ## SD Card Firmware Update
 
-#### For installing newer versions of CrossInk. Can be used by USB locked devices.
+#### For installing newer versions of INKademic. Can be used by USB locked devices.
 
 1. Follow the same steps from the Web Installation method above. There will be an option to download the firmware instead of USB flashing.
 2. Place the downloaded `firmware-*.bin` file on your SD card. You can place this file anywhere.
@@ -57,7 +57,7 @@ Install `esptool`:
 pip3 install esptool
 ```
 
-Download the `firmware-*.bin` file from the [CrossInk Academic releases page](https://github.com/jbfarias/CrossInk-academic/releases), then connect your device with USB-C.
+Download the `firmware-*.bin` file from the [INKademic releases page](https://github.com/jbfarias/INKademic/releases), then connect your device with USB-C.
 
 Find the device port:
 

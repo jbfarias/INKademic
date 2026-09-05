@@ -6,7 +6,7 @@ nav_order: 5
 # Dictionary
 
 > [!TIP]
-> For the best experience, prepare your dictionary using CrossInk's web companion tool [Inky](https://inky.crossink.dev/#dictionary-tools), which creates `.oft` and `.oft.cspt` accelerator files. An unprepared dictionary with uncompressed `.dict` and `.idx` files also works: on its first lookup, CrossInk creates a smaller on-device `.qidx` quick index automatically.
+> For the best experience, prepare your dictionary using INKademic's web companion tool [Inky](https://inky.crossink.dev/#dictionary-tools), which creates `.oft` and `.oft.cspt` accelerator files. An unprepared dictionary with uncompressed `.dict` and `.idx` files also works: on its first lookup, INKademic creates a smaller on-device `.qidx` quick index automatically.
 
 ## Supported Format
 
@@ -36,13 +36,13 @@ Example folder structure: `SDCARD/.dictionaries/Cambridge/*.dict`. Make sure the
 
 ### Preparing Compressed or Large Dictionaries
 
-CrossInk does not decompress dictionaries on the device. If a download contains `.dict.dz` or `.syn.dz`, run the bundled preparation tool on a computer before copying the folder to the SD card (see [Dictionary Tools](#dictionary-tools)).
+INKademic does not decompress dictionaries on the device. If a download contains `.dict.dz` or `.syn.dz`, run the bundled preparation tool on a computer before copying the folder to the SD card (see [Dictionary Tools](#dictionary-tools)).
 
-An uncompressed dictionary with only `.dict` and `.idx` files is usable without desktop preparation. During the first lookup, if neither `*.idx.oft` nor `*.idx.oft.cspt` is present, CrossInk creates `*.qidx` beside the dictionary files. It records a sample every 256 index entries, letting later direct and stemmed lookups jump near the requested word before scanning a small part of the original `.idx`.
+An uncompressed dictionary with only `.dict` and `.idx` files is usable without desktop preparation. During the first lookup, if neither `*.idx.oft` nor `*.idx.oft.cspt` is present, INKademic creates `*.qidx` beside the dictionary files. It records a sample every 256 index entries, letting later direct and stemmed lookups jump near the requested word before scanning a small part of the original `.idx`.
 
-`.qidx` is a disposable device cache: it is rebuilt when it is missing, invalid, or belongs to a differently sized `.idx` file, and it can be deleted safely. If the lookup is cancelled or the SD card cannot create the cache, the lookup still works by scanning the full `.idx`; CrossInk will try to create the quick index again on a later lookup.
+`.qidx` is a disposable device cache: it is rebuilt when it is missing, invalid, or belongs to a differently sized `.idx` file, and it can be deleted safely. If the lookup is cancelled or the SD card cannot create the cache, the lookup still works by scanning the full `.idx`; INKademic will try to create the quick index again on a later lookup.
 
-Desktop preparation remains recommended for large dictionaries. `*.idx.oft.cspt` is the preferred direct-lookup accelerator, with `*.idx.oft` as its fallback; either one prevents CrossInk from creating `.qidx`. The desktop files also speed up synonym resolution and ordinal lookups. The smaller `.qidx` accelerates direct lookup and bounds spelling-suggestion searches, but it does not accelerate synonyms or ordinal lookups.
+Desktop preparation remains recommended for large dictionaries. `*.idx.oft.cspt` is the preferred direct-lookup accelerator, with `*.idx.oft` as its fallback; either one prevents INKademic from creating `.qidx`. The desktop files also speed up synonym resolution and ordinal lookups. The smaller `.qidx` accelerates direct lookup and bounds spelling-suggestion searches, but it does not accelerate synonyms or ordinal lookups.
 
 ---
 
@@ -61,7 +61,7 @@ The **Look Up Word** option in the reader menu is only visible when a dictionary
 ### Touchscreen
 
 In an EPUB reader with **Touch Reader Controls** enabled, touch and hold a
-word for about one second. CrossInk opens word selection on that word; lift
+word for about one second. INKademic opens word selection on that word; lift
 your finger to look it up. To look up a phrase, keep holding after the
 selection opens, drag to the last word, then lift your finger. This is a
 direct shortcut from the reading page, so you do not need to open the reader
@@ -176,11 +176,11 @@ The history screen shows the 50 most recent entries. The on-disk history is appe
 
 Dictionary definitions use the active reader font and size by default. If at least one dictionary is installed, you can set the default dictionary font and size in **Settings > Reader > Font Options**. Books inherit those defaults unless you choose a different font or size in **Book Options > Font Options**. Choose **Use Global** in Book Options to return a book to the global defaults. When the reader uses an SD-card font, you can choose a different dictionary size while keeping that same family; built-in reader fonts continue to use their active size. A saved size with no matching file uses the closest available size from the dictionary family.
 
-Only one SD-card font family is loaded at a time: CrossInk temporarily swaps to the dictionary font while a definition is open, then restores the reader font when you close it. If a book's selected dictionary font is missing, the definition temporarily uses the global dictionary font. If that is also unavailable, it falls back to the reader font. The per-book selection is kept so it resumes automatically if you reinstall the family.
+Only one SD-card font family is loaded at a time: INKademic temporarily swaps to the dictionary font while a definition is open, then restores the reader font when you close it. If a book's selected dictionary font is missing, the definition temporarily uses the global dictionary font. If that is also unavailable, it falls back to the reader font. The per-book selection is kept so it resumes automatically if you reinstall the family.
 
 Built-in fonts keep the glyphs they contain and approximate only unsupported pronunciation symbols. If you see a filled diamond, choose an SD-card font that includes that character.
 
-You can download CrossInk's SD card catalog of fonts with IPA glyphs built-in from [Inky](https://inky.crossink.dev/#downloads).
+You can download INKademic's SD card catalog of fonts with IPA glyphs built-in from [Inky](https://inky.crossink.dev/#downloads).
 
 See the [dictionary font builder](dictionary-development.md#generating-dictionary-fonts) if you want to build your own dictionary fonts via the CLI.
 
@@ -190,7 +190,7 @@ See the [dictionary font builder](dictionary-development.md#generating-dictionar
 
 ## Inky
 
-CrossInk's companion app, [Inky](https://inky.crossink.dev/#dictionary-tools), prepares one StarDict dictionary at a time and generates the accelerator indexes used for fast lookups. It accepts either:
+INKademic's companion app, [Inky](https://inky.crossink.dev/#dictionary-tools), prepares one StarDict dictionary at a time and generates the accelerator indexes used for fast lookups. It accepts either:
 
 - an uncompressed dictionary folder; or
 - a `.zip`, `.tar.zst`, or `.rar` archive containing that folder or its dictionary files.
@@ -216,7 +216,7 @@ python3 scripts/dictionary_tools.py prep /path/to/dictionary-folder
 
 Run this before copying compressed dictionaries to the SD card. It is also recommended for large uncompressed dictionaries because it makes lookups much faster.
 
-The command produces, when applicable, `.dict`, `.syn`, `.idx.oft`, `.syn.oft`, `.idx.oft.cspt`, and `.syn.oft.cspt`. Copy these alongside the original `.idx` and optional `.ifo`. CrossInk uses `.idx.oft.cspt` first, then `.idx.oft`; when neither exists, it creates and uses `.qidx` on the device. If a quick index cannot be created, CrossInk scans the original index instead.
+The command produces, when applicable, `.dict`, `.syn`, `.idx.oft`, `.syn.oft`, `.idx.oft.cspt`, and `.syn.oft.cspt`. Copy these alongside the original `.idx` and optional `.ifo`. INKademic uses `.idx.oft.cspt` first, then `.idx.oft`; when neither exists, it creates and uses `.qidx` on the device. If a quick index cannot be created, INKademic scans the original index instead.
 
 ### Looking Up a Word
 

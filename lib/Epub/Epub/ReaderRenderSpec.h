@@ -26,7 +26,7 @@ struct ReaderRenderSpec {
   bool bionicReadingEnabled = false;
   bool guideReadingEnabled = false;
   uint8_t wordSpacing = 0;
-  EpubRenderMode renderMode = EpubRenderMode::CrossInkDefault;
+  EpubRenderMode renderMode = EpubRenderMode::InkademicDefault;
 };
 
 inline uint32_t readerRenderSpecSignature(const ReaderRenderSpec& spec) {

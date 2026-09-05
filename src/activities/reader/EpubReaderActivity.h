@@ -228,7 +228,7 @@ class EpubReaderActivity final : public Activity {
 
   // Footnote support
   std::vector<FootnoteEntry> currentPageFootnotes;
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   struct FootnoteTouchTarget {
     int16_t x = 0;
     int16_t y = 0;
@@ -401,7 +401,7 @@ class EpubReaderActivity final : public Activity {
   bool quickActionUsesPowerRelease(CrossPointSettings::LONG_PRESS_MENU_ACTION action) const;
   void suppressConfirmShortcutRelease(CrossPointSettings::LONG_PRESS_MENU_ACTION action);
   void executeFootnoteQuickAction(bool suppressInitialPowerRelease = false);
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
   void buildFootnoteTouchTargets(const Page& page, int fontId, int orientedMarginTop, int orientedMarginLeft);
   bool handleTouchFootnoteLink(int touchX, int touchY);
 #endif

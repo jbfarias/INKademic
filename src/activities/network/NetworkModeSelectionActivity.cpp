@@ -16,7 +16,7 @@ namespace fui = freeink::ui;
 namespace {
 constexpr fui::ActionId ACTION_ROW = 1;
 
-#if CROSSINK_APP_CAP_USB_DRIVE
+#if INKADEMIC_APP_CAP_USB_DRIVE
 constexpr NetworkMode menuModes[] = {NetworkMode::JOIN_NETWORK,        NetworkMode::CONNECT_CALIBRE,
                                      NetworkMode::CREATE_HOTSPOT,      NetworkMode::USB_DRIVE,
                                      NetworkMode::NEARBY_BOOK_RECEIVE, NetworkMode::NEARBY_STATS_SYNC};
@@ -43,7 +43,7 @@ constexpr UIIcon menuIcons[] = {UIIcon::Wifi, UIIcon::Library, UIIcon::Hotspot, 
 
 constexpr int MENU_ITEM_COUNT = sizeof(menuModes) / sizeof(menuModes[0]);
 constexpr int LIST_ITEM_COUNT = MENU_ITEM_COUNT + 1;
-constexpr int NEARBY_SECTION_INDEX = CROSSINK_APP_CAP_USB_DRIVE ? 4 : 3;
+constexpr int NEARBY_SECTION_INDEX = INKADEMIC_APP_CAP_USB_DRIVE ? 4 : 3;
 
 int listIndexForMenuIndex(const int menuIndex) { return menuIndex < NEARBY_SECTION_INDEX ? menuIndex : menuIndex + 1; }
 }  // namespace

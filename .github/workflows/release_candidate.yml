@@ -69,14 +69,14 @@ jobs:
         run: |
           VERSION="${RC_BRANCH_RAW}-RC"
           escaped_version=$(printf '%s\n' "$VERSION" | sed 's/[&|]/\\&/g')
-          sed -i "/^\[crossink\]$/,/^\[/s|^version = .*|version = ${escaped_version}|" platformio.ini
+          sed -i "/^\[inkademic\]$/,/^\[/s|^version = .*|version = ${escaped_version}|" platformio.ini
 
-      - name: Build CrossInk
+      - name: Build INKademic
         shell: bash
         env:
-          CROSSINK_RELEASE_VERSION: "1"
-          CROSSINK_RC_BRANCH: ${{ env.RC_BRANCH_RAW }}
-          CROSSINK_RC_HASH: ${{ env.RC_HASH_SHORT }}
+          INKADEMIC_RELEASE_VERSION: "1"
+          INKADEMIC_RC_BRANCH: ${{ env.RC_BRANCH_RAW }}
+          INKADEMIC_RC_HASH: ${{ env.RC_HASH_SHORT }}
         run: pio run -j1 -e ${{ matrix.environment }}
 
       - name: Upload firmware artifact

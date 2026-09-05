@@ -11,7 +11,7 @@ This guide describes the dictionary implementation currently shipped on this bra
 | `.ifo` | Recommended | Metadata and `sametypesequence` used to interpret definition fields |
 | `.syn` | Optional | Alternate forms mapped to `.idx` ordinals |
 | `.idx.oft` / `.syn.oft` | Optional | Coarse page offsets used to narrow a scan |
-| `.idx.oft.cspt` / `.syn.oft.cspt` | Optional | CrossInk prefix indexes used as the fastest lookup path |
+| `.idx.oft.cspt` / `.syn.oft.cspt` | Optional | INKademic prefix indexes used as the fastest lookup path |
 | `.qidx` | Generated | Disposable sampled index built by the device when `.idx` has no prepared accelerator |
 
 The device requires an uncompressed `.dict`; it does not read `.dict.dz` or `.syn.dz` directly. Use `scripts/dictionary_tools.py prep` on a computer when decompression is needed or to generate the fastest `.oft`/`.cspt` accelerators. For an uncompressed dictionary without those accelerators, the device automatically generates `.qidx` on first lookup.
@@ -76,7 +76,7 @@ and size catalog in `lib/EpdFont/scripts/sd-fonts.yaml`, then adds the broad
 IPA, combining-mark, and reader ranges needed by dictionary definitions before
 delegating to `build-sd-fonts.py`. It packages each generated family as a ZIP.
 
-Install the font-builder dependencies and run it from the CrossInk repository
+Install the font-builder dependencies and run it from the INKademic repository
 root:
 
 ```bash
@@ -118,7 +118,7 @@ The wrapper does not change `sd-fonts.yaml`; it creates a temporary transformed
 catalog for the shared builder. If a family is changed or removed, use
 `--clean` so stale files cannot be mistaken for current output.
 
-## CrossInk Prefix Index (`.cspt`)
+## INKademic Prefix Index (`.cspt`)
 
 Both `.idx.oft.cspt` and `.syn.oft.cspt` use the same format:
 

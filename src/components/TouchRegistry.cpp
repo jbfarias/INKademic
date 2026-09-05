@@ -1,6 +1,6 @@
 #include "TouchRegistry.h"
 
-#if CROSSINK_APP_CAP_TOUCH
+#if INKADEMIC_APP_CAP_TOUCH
 
 namespace {
 bool contains(const Rect& rect, const int x, const int y) {
