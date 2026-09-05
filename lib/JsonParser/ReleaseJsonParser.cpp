@@ -22,10 +22,11 @@ void copyGithubSha256Digest(char* dst, size_t dstSize, const char* value, size_t
 
 }  // namespace
 
-ReleaseJsonParser::ReleaseJsonParser(AssetMatcher assetMatcher)
+ReleaseJsonParser::ReleaseJsonParser(AssetMatcher assetMatcher, AssetMatcher signatureMatcher)
     : parser(JsonCallbacks{this, sOnKey, sOnString, sOnNumber, sOnBool, sOnNull, sOnObjectStart, sOnObjectEnd,
                            sOnArrayStart, sOnArrayEnd}),
-      assetMatcher(assetMatcher) {
+      assetMatcher(assetMatcher),
+      signatureMatcher(signatureMatcher) {
   reset();
 }
 
@@ -41,6 +42,9 @@ void ReleaseJsonParser::reset() {
   firmwareSize = 0;
   tagFound = false;
   firmwareFound = false;
+  signatureUrl[0] = '\0';
+  signatureSize = 0;
+  signatureFound = false;
   currentAssetName[0] = '\0';
   currentAssetUrl[0] = '\0';
   currentAssetSha256[0] = '\0';
@@ -48,6 +52,7 @@ void ReleaseJsonParser::reset() {
 }
 
 void ReleaseJsonParser::setAssetMatcher(AssetMatcher matcher) { assetMatcher = matcher; }
+void ReleaseJsonParser::setSignatureMatcher(AssetMatcher matcher) { signatureMatcher = matcher; }
 
 void ReleaseJsonParser::feed(const char* data, size_t len) { parser.feed(data, len); }
 
@@ -57,15 +62,24 @@ const char* ReleaseJsonParser::getTagName() const { return tagName; }
 const char* ReleaseJsonParser::getFirmwareUrl() const { return firmwareUrl; }
 size_t ReleaseJsonParser::getFirmwareSize() const { return firmwareSize; }
 const char* ReleaseJsonParser::getFirmwareSha256() const { return firmwareSha256; }
+bool ReleaseJsonParser::foundSignature() const { return signatureFound; }
+const char* ReleaseJsonParser::getSignatureUrl() const { return signatureUrl; }
+size_t ReleaseJsonParser::getSignatureSize() const { return signatureSize; }
 
 void ReleaseJsonParser::commitAsset() {
   const bool matchesFirmware =
       assetMatcher != nullptr ? assetMatcher(currentAssetName) : strcmp(currentAssetName, "firmware.bin") == 0;
+  const bool matchesSignature = signatureMatcher != nullptr && signatureMatcher(currentAssetName);
   if (!firmwareFound && matchesFirmware) {
     memcpy(firmwareUrl, currentAssetUrl, sizeof(firmwareUrl));
     memcpy(firmwareSha256, currentAssetSha256, sizeof(firmwareSha256));
     firmwareSize = currentAssetSize;
     firmwareFound = true;
+  }
+  if (!signatureFound && matchesSignature) {
+    memcpy(signatureUrl, currentAssetUrl, sizeof(signatureUrl));
+    signatureSize = currentAssetSize;
+    signatureFound = true;
   }
   currentAssetName[0] = '\0';
   currentAssetUrl[0] = '\0';

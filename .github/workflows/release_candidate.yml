@@ -79,11 +79,35 @@ jobs:
           INKADEMIC_RC_HASH: ${{ env.RC_HASH_SHORT }}
         run: pio run -j1 -e ${{ matrix.environment }}
 
+      - name: Sign X4 Pro OTA image
+        if: matrix.environment == 'x4-pro'
+        env:
+          OTA_PRIVATE_KEY: ${{ secrets.INKADEMIC_OTA_ED25519_PRIVATE_KEY }}
+        run: |
+          if [ -z "$OTA_PRIVATE_KEY" ]; then
+            echo "::error::INKADEMIC_OTA_ED25519_PRIVATE_KEY is not set"
+            exit 1
+          fi
+          key_file=$(mktemp)
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s\n' "$OTA_PRIVATE_KEY" > "$key_file"
+          python3 scripts/sign_ota.py \
+            ".pio/build/x4-pro/firmware-x4-pro-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin" \
+            --key "$key_file"
+
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v7
         with:
           name: release-candidate-firmware-${{ matrix.environment }}
           path: .pio/build/${{ matrix.environment }}/${{ matrix.firmware }}-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin
+          if-no-files-found: error
+
+      - name: Upload X4 Pro signature artifact
+        if: matrix.environment == 'x4-pro'
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-candidate-firmware-signature-x4-pro
+          path: .pio/build/x4-pro/firmware-x4-pro-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin.sig
           if-no-files-found: error
 
   publish-release-candidate:
@@ -128,3 +152,4 @@ jobs:
             release-candidate-firmware/firmware-x3-x4-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin
             release-candidate-firmware/firmware-sticky-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin
             release-candidate-firmware/firmware-x4-pro-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin
+            release-candidate-firmware/firmware-x4-pro-${{ env.RC_BRANCH_SAFE }}-${{ env.RC_HASH_SHORT }}-RC.bin.sig

@@ -32,6 +32,12 @@ dependencies.
 - [YACP](https://github.com/Sichroteph/YACP/f) was reviewed as an additional
   reference for reader behavior and project-level improvements.
 
+For the current X4 Pro compatibility pass, the most directly reusable upstream
+patterns were the [logical navigation buttons](https://github.com/crosspoint-reader/crosspoint-reader/blob/develop/src/MappedInputManager.cpp)
+and the [USB Drive host-disconnect lifecycle](https://github.com/crosspoint-reader/crosspoint-reader/blob/develop/src/activities/network/UsbDriveActivity.cpp)
+from CrossPoint Reader. They were adapted to INKademic's existing academic
+activities, annotation stores, and simulator rather than copied wholesale.
+
 These projects remain separately licensed and maintained. INKademic does not
 vendor their repositories wholesale: changes are adapted to the CrossPoint /
 FreeInk architecture, tested across the supported device profiles, and

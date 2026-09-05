@@ -22,6 +22,8 @@ bool hasActiveWifiConnection() { return WiFi.status() == WL_CONNECTED && WiFi.lo
 StrId failureMessageFor(const OtaUpdater::OtaUpdaterError error) {
   if (error == OtaUpdater::HASH_MISMATCH_ERROR) return StrId::STR_UPDATE_HASH_MISMATCH;
   if (error == OtaUpdater::WRONG_DEVICE_ERROR) return StrId::STR_FIRMWARE_WRONG_DEVICE;
+  if (error == OtaUpdater::SIGNATURE_MISSING_ERROR) return StrId::STR_UPDATE_SIGNATURE_REQUIRED;
+  if (error == OtaUpdater::SIGNATURE_INVALID_ERROR) return StrId::STR_UPDATE_SIGNATURE_INVALID;
   return StrId::STR_UPDATE_FAILED;
 }
 

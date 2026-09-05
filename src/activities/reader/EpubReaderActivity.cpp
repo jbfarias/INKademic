@@ -45,6 +45,7 @@
 #include "LookedUpWordsActivity.h"
 #include "MappedInputManager.h"
 #include "NearbyBookPositionSyncActivity.h"
+#include "activities/network/CrossPointWebServerActivity.h"
 #include "PageTagStore.h"
 #include "ProgressMapper.h"
 #include "QrDisplayActivity.h"
@@ -3373,6 +3374,19 @@ void EpubReaderActivity::onReaderMenuConfirm(EpubReaderMenuActivity::MenuAction 
       }
       // If no text or page loading failed, just close menu
       requestUpdate();
+      break;
+    }
+    case EpubReaderMenuActivity::MenuAction::NOTES_CONNECT: {
+      if (!epub) {
+        requestUpdate();
+        break;
+      }
+      pauseReadingPaceTimer("notes_connect");
+      // Start the academic notes page directly in AP mode and carry the
+      // current book path through the QR link, so a student lands on this
+      // book's highlights rather than having to select it again.
+      activityManager.replaceActivity(std::make_unique<CrossPointWebServerActivity>(
+          renderer, mappedInput, NetworkMode::CREATE_HOTSPOT, epub->getPath(), true, true));
       break;
     }
     case EpubReaderMenuActivity::MenuAction::SAVE_CLIPPING: {

@@ -62,8 +62,11 @@ inline esp_reset_reason_t esp_reset_reason() { return ESP_RST_UNKNOWN; }
 inline esp_sleep_wakeup_cause_t esp_sleep_get_wakeup_cause() { return ESP_SLEEP_WAKEUP_UNDEFINED; }
 #else
 #include <esp_sleep.h>
+#include <esp_ota_ops.h>
 #include <esp_system.h>
 #endif
+
+#include <esp_task_wdt.h>
 
 #include <algorithm>
 #include <cstring>
@@ -118,6 +121,44 @@ SdCardFontSystem sdFontSystem;
 DictionaryRegistry dictionaryRegistry;
 FontCacheManager fontCacheManager(renderer.getFontMap(), renderer.getSdCardFonts());
 static unsigned long allowSleepAt = 0;
+static bool mainWatchdogReady = false;
+constexpr uint32_t MAIN_WATCHDOG_TIMEOUT_SECONDS = 15;
+
+void initMainWatchdog() {
+#ifdef SIMULATOR
+  const esp_err_t initResult = esp_task_wdt_init(MAIN_WATCHDOG_TIMEOUT_SECONDS, true);
+#else
+  const esp_task_wdt_config_t watchdogConfig = {
+      .timeout_ms = MAIN_WATCHDOG_TIMEOUT_SECONDS * 1000U,
+      .idle_core_mask = 0,
+      .trigger_panic = true,
+  };
+  const esp_err_t initResult = esp_task_wdt_init(&watchdogConfig);
+#endif
+#ifdef SIMULATOR
+  if (initResult != ESP_OK) {
+#else
+  if (initResult != ESP_OK && initResult != ESP_ERR_INVALID_STATE) {
+#endif
+    LOG_ERR("BOOT", "Task watchdog init failed: %d", static_cast<int>(initResult));
+    return;
+  }
+  const esp_err_t addResult = esp_task_wdt_add(nullptr);
+#ifdef SIMULATOR
+  if (addResult != ESP_OK) {
+#else
+  if (addResult != ESP_OK && addResult != ESP_ERR_INVALID_STATE) {
+#endif
+    LOG_ERR("BOOT", "Task watchdog registration failed: %d", static_cast<int>(addResult));
+    return;
+  }
+  mainWatchdogReady = true;
+  LOG_DBG("BOOT", "Main task watchdog armed (%lus)", static_cast<unsigned long>(MAIN_WATCHDOG_TIMEOUT_SECONDS));
+}
+
+void feedMainWatchdog() {
+  if (mainWatchdogReady) esp_task_wdt_reset();
+}
 static ButtonShortcutController buttonShortcutController;
 static unsigned long lastX4ProPowerClickAt = 0;
 static unsigned long lastX4ProHomeKeyTapAt = 0;
@@ -1071,6 +1112,7 @@ void setup() {
 #endif
 
   HalSystem::begin();
+  initMainWatchdog();
   // checkPanic() clears the watchdog capture marker after a successful SD
   // dump, so retain the boot classification for the later activity route.
   const bool rebootedFromPanic = HalSystem::isRebootFromPanic();
@@ -1397,6 +1439,18 @@ void setup() {
     gpio.update();
   }
 
+#ifndef SIMULATOR
+  // OTA rollback stays armed until the first complete boot/render succeeds.
+  // A panic or watchdog before this point therefore returns to the previous
+  // slot instead of leaving X4 Pro on a half-booting firmware.
+  const esp_err_t otaHealth = esp_ota_mark_app_valid_cancel_rollback();
+  if (otaHealth != ESP_OK && otaHealth != ESP_ERR_INVALID_STATE) {
+    LOG_ERR("BOOT", "Could not mark OTA image healthy: %s", esp_err_to_name(otaHealth));
+  } else {
+    LOG_DBG("BOOT", "OTA image marked healthy; rollback cancelled");
+  }
+#endif
+
   if (restoreQuickLockAfterWake) {
     // Render the reconstructed route first, then draw the badge. The pending
     // wake release stays swallowed by the main loop, so it cannot unlock the
@@ -1410,6 +1464,7 @@ void setup() {
 }
 
 void loop() {
+  feedMainWatchdog();
   static unsigned long maxLoopDuration = 0;
   const unsigned long loopStartTime = millis();
   static unsigned long lastMemPrint = 0;
@@ -1647,4 +1702,5 @@ void loop() {
       delay(10);
     }
   }
+  feedMainWatchdog();
 }

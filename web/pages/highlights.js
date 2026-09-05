@@ -147,6 +147,11 @@ async function loadBookList() {
 
     books = epubs;
     renderBookList();
+    const requestedPath = new URLSearchParams(window.location.search).get('path');
+    if (requestedPath) {
+      const matchingBook = books.find(book => book.path === requestedPath);
+      if (matchingBook) await selectBook(matchingBook.path);
+    }
   } catch (e) {
     container.innerHTML = '<p style="font-size:0.85em;color:var(--danger-color);">Could not load books.</p>';
     console.error(e);

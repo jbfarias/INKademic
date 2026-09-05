@@ -17,12 +17,17 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback, void*, s
 
 #include "AppVersion.h"
 #include "FirmwareFlasher.h"
+#include "OtaUpdatePublicKey.h"
 #include "OtaUpdater.h"
 #include "esp_http_client.h"
 #include "esp_ota_ops.h"
 #include "mbedtls/sha256.h"
 #include "network/HttpDownloader.h"
 #include "network/WifiPowerSaveGuard.h"
+
+#if defined(HAVE_ED25519) && defined(HAVE_ED25519_VERIFY) && defined(HAVE_ED25519_KEY_IMPORT)
+#include <wolfssl/wolfcrypt/ed25519.h>
+#endif
 
 namespace {
 #ifndef INKADEMIC_OTA_RELEASE_URL
@@ -42,6 +47,7 @@ constexpr char firmwareAssetName[] = "firmware.bin";
 constexpr char binSuffix[] = ".bin";
 constexpr size_t VERSION_SEGMENT_COUNT = 4;
 constexpr size_t OTA_PROGRESS_UPDATE_BYTES = 64 * 1024;
+constexpr size_t OTA_SIGNATURE_SIZE = 64;
 
 struct ParsedVersion {
   int segments[VERSION_SEGMENT_COUNT] = {0, 0, 0, 0};
@@ -169,6 +175,30 @@ bool isMatchingFirmwareAssetName(const char* assetName) {
   return endsWith(assetName, binSuffix);
 }
 
+bool isMatchingSignatureAssetName(const char* assetName) {
+  if (assetName == nullptr) return false;
+  const std::string expectedName = std::string(firmwareAssetName) + ".sig";
+  return strcmp(assetName, expectedName.c_str()) == 0;
+}
+
+#if defined(HAVE_ED25519) && defined(HAVE_ED25519_VERIFY) && defined(HAVE_ED25519_KEY_IMPORT)
+bool verifyEd25519Digest(const uint8_t digest[32], const uint8_t* signature, const size_t signatureLength) {
+  if (signature == nullptr || signatureLength != ED25519_SIG_SIZE) return false;
+
+  ed25519_key key;
+  if (wc_ed25519_init(&key) != 0) return false;
+  const int importResult = wc_ed25519_import_public(inkademic_ota::kEd25519PublicKey,
+                                                    sizeof(inkademic_ota::kEd25519PublicKey), &key);
+  int verified = 0;
+  const int verifyResult = importResult == 0
+                               ? wc_ed25519_verify_msg(signature, static_cast<word32>(signatureLength), digest, 32,
+                                                       &verified, &key)
+                               : -1;
+  wc_ed25519_free(&key);
+  return verifyResult == 0 && verified == 1;
+}
+#endif
+
 /*
  * When esp_crt_bundle.h included, it is pointing wrong header file
  * which is something under WifiClientSecure because of our framework based on arduno platform.
@@ -225,12 +255,14 @@ OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {
   latestVersion.clear();
   otaUrl.clear();
   otaSha256.clear();
+  otaSignatureUrl.clear();
   otaSize = 0;
+  otaSignatureSize = 0;
   processedSize = 0;
   totalSize = 0;
 
   esp_err_t esp_err;
-  ReleaseJsonParser releaseParser(isMatchingFirmwareAssetName);
+  ReleaseJsonParser releaseParser(isMatchingFirmwareAssetName, isMatchingSignatureAssetName);
 
   esp_http_client_config_t client_config = {
       .url = latestReleaseUrl,
@@ -275,8 +307,8 @@ OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {
   }
 
   LOG_DBG("OTA", "Response received: %zu bytes total", totalBytesReceived);
-  LOG_DBG("OTA", "Parser results: tag=%s firmware=%s", releaseParser.foundTag() ? "yes" : "no",
-          releaseParser.foundFirmware() ? "yes" : "no");
+  LOG_DBG("OTA", "Parser results: tag=%s firmware=%s signature=%s", releaseParser.foundTag() ? "yes" : "no",
+          releaseParser.foundFirmware() ? "yes" : "no", releaseParser.foundSignature() ? "yes" : "no");
 
   if (!releaseParser.foundTag()) {
     LOG_ERR("OTA", "No tag_name in release JSON");
@@ -292,13 +324,16 @@ OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {
 
   otaUrl = releaseParser.getFirmwareUrl();
   otaSha256 = releaseParser.getFirmwareSha256();
+  otaSignatureUrl = releaseParser.getSignatureUrl();
   otaSize = releaseParser.getFirmwareSize();
+  otaSignatureSize = releaseParser.getSignatureSize();
   totalSize = otaSize;
   updateAvailable = true;
 
   LOG_DBG("OTA", "Found update: tag=%s size=%zu sha256=%s", latestVersion.c_str(), otaSize,
           otaSha256.empty() ? "missing" : "present");
   LOG_DBG("OTA", "Firmware URL: %s", otaUrl.c_str());
+  LOG_DBG("OTA", "Signature URL: %s", otaSignatureUrl.empty() ? "missing" : otaSignatureUrl.c_str());
   return OK;
 }
 
@@ -328,6 +363,12 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback onProgres
   if (isCancellationRequested()) {
     return CANCELLED_ERROR;
   }
+#if defined(INKADEMIC_REQUIRE_SIGNED_OTA) && INKADEMIC_REQUIRE_SIGNED_OTA
+  if (otaSignatureUrl.empty()) {
+    LOG_ERR("OTA", "Refusing unsigned firmware on this device");
+    return SIGNATURE_MISSING_ERROR;
+  }
+#endif
   const bool hasManifestSha256 = isSha256Hex(otaSha256.c_str());
   if (!otaSha256.empty() && !hasManifestSha256) {
     LOG_ERR("OTA", "Refusing firmware with invalid manifest sha256");
@@ -476,6 +517,46 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback onProgres
       return HASH_MISMATCH_ERROR;
     }
     LOG_INF("OTA", "Firmware sha256 verified");
+  }
+
+  uint8_t otaSignature[OTA_SIGNATURE_SIZE] = {};
+  size_t otaSignatureBytes = 0;
+  if (!otaSignatureUrl.empty()) {
+    const auto signatureResult = HttpDownloader::streamUrl(
+        otaSignatureUrl,
+        [&](const uint8_t* data, const size_t len) {
+          if (len == 0) return true;
+          if (otaSignatureBytes + len > sizeof(otaSignature)) {
+            LOG_ERR("OTA", "Ed25519 signature asset is too large");
+            return false;
+          }
+          memcpy(otaSignature + otaSignatureBytes, data, len);
+          otaSignatureBytes += len;
+          return true;
+        },
+        nullptr, "", "", HttpDownloader::DownloadOptions());
+    if (signatureResult != HttpDownloader::OK || otaSignatureBytes != sizeof(otaSignature)) {
+      LOG_ERR("OTA", "Ed25519 signature download failed (%zu bytes, result=%d)", otaSignatureBytes,
+              static_cast<int>(signatureResult));
+      esp_ota_abort(otaHandle);
+#if defined(INKADEMIC_REQUIRE_SIGNED_OTA) && INKADEMIC_REQUIRE_SIGNED_OTA
+      return signatureResult == HttpDownloader::ABORTED ? CANCELLED_ERROR : SIGNATURE_MISSING_ERROR;
+#else
+      return SIGNATURE_INVALID_ERROR;
+#endif
+    }
+#if defined(HAVE_ED25519) && defined(HAVE_ED25519_VERIFY) && defined(HAVE_ED25519_KEY_IMPORT)
+    if (!verifyEd25519Digest(computedSha256, otaSignature, otaSignatureBytes)) {
+      LOG_ERR("OTA", "Ed25519 signature verification failed");
+      esp_ota_abort(otaHandle);
+      return SIGNATURE_INVALID_ERROR;
+    }
+    LOG_INF("OTA", "Ed25519 signature verified");
+#else
+    LOG_ERR("OTA", "Signature received but Ed25519 support is unavailable");
+    esp_ota_abort(otaHandle);
+    return SIGNATURE_INVALID_ERROR;
+#endif
   }
 
   esp_err_t esp_err = esp_ota_end(otaHandle);

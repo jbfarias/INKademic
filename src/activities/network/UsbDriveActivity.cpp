@@ -15,7 +15,12 @@ void UsbDriveActivity::onEnter() {
   Activity::onEnter();
   state = State::Unsupported;
   preparing = true;
+  startFailed = false;
   restartRequested = false;
+  forcedDisconnectRequested = false;
+  hostWaitStartedAt = 0;
+  startFailureStartedAt = 0;
+  forcedDisconnectRequestedAt = 0;
 
   // Paint the instruction screen before detaching the filesystem and exposing
   // its block device to the host. The two operations must never overlap.
@@ -23,13 +28,18 @@ void UsbDriveActivity::onEnter() {
 #ifndef SIMULATOR
   if (!Storage.beginUsbDrive()) {
     LOG_ERR("USB", "Unable to start USB Drive");
-    restartToHome();
+    preparing = false;
+    startFailed = true;
+    state = State::IoError;
+    startFailureStartedAt = millis();
+    requestUpdate();
     return;
   }
 
 #endif
   preparing = false;
   state = State::WaitingForHost;
+  hostWaitStartedAt = millis();
   requestUpdate();
 }
 
@@ -42,15 +52,56 @@ void UsbDriveActivity::onExit() {
 
 void UsbDriveActivity::loop() {
 #ifndef SIMULATOR
-  const auto storageState = Storage.usbDriveState();
-  const State nextState = static_cast<State>(storageState);
-  if (nextState != state) {
-    state = nextState;
-    requestUpdate();
+  if (!startFailed) {
+    const auto storageState = Storage.usbDriveState();
+    const State nextState = static_cast<State>(storageState);
+    if (nextState != state) {
+      state = nextState;
+      requestUpdate();
+    }
+#if FREEINK_DEVICE_X4PRO && ARDUINO_USB_MODE
+    // X4 Pro has no reliable VBUS pin. If TinyUSB keeps reporting a mounted
+    // MSC session after the cable is removed, the native USB-Serial/JTAG SOF
+    // signal still drops and gives us a second, hardware-specific disconnect
+    // path instead of leaving the screen trapped in USB Drive.
+    if ((state == State::Connected || state == State::Accessed) && !gpio.isUsbConnected()) {
+      state = State::Disconnected;
+      requestUpdate();
+    }
+#endif
   }
 #endif
 
-  const bool canExitWithInput = state == State::WaitingForHost || state == State::IoError;
+  if (state == State::WaitingForHost && millis() - hostWaitStartedAt >= HOST_WAIT_TIMEOUT_MS) {
+    LOG_INF("USB", "USB Drive host wait timed out");
+    restartToHome();
+    return;
+  }
+
+  if (startFailed && millis() - startFailureStartedAt >= START_FAILURE_TIMEOUT_MS) {
+    LOG_INF("USB", "USB Drive startup failure timed out");
+    restartToHome();
+    return;
+  }
+
+#ifndef SIMULATOR
+  if (!startFailed && state == State::IoError) {
+    if (!forcedDisconnectRequested) {
+      forcedDisconnectRequested = true;
+      forcedDisconnectRequestedAt = millis();
+      LOG_ERR("USB", "USB Drive I/O error; disconnecting host");
+      if (!Storage.disconnectUsbDriveHost()) {
+        LOG_ERR("USB", "Unable to request USB Drive host disconnect");
+      }
+    } else if (millis() - forcedDisconnectRequestedAt >= FORCED_DISCONNECT_TIMEOUT_MS) {
+      LOG_ERR("USB", "USB Drive host disconnect timed out; forcing restart");
+      restartToHome();
+    }
+    return;
+  }
+#endif
+
+  const bool canExitWithInput = state == State::WaitingForHost || startFailed;
   if (canExitWithInput) {
     if (TouchHeaderBackButton::wasTapped(mappedInput, renderer) ||
         mappedInput.wasPressed(MappedInputManager::Button::Back) ||
@@ -60,15 +111,6 @@ void UsbDriveActivity::loop() {
     }
     if (state == State::WaitingForHost) return;
   }
-
-#ifndef SIMULATOR
-  // An MSC I/O error is sticky until the host disconnects. Poll the native USB
-  // bus state directly so the reader honors the error screen's disconnect hint.
-  if (state == State::IoError && !gpio.isUsbConnected()) {
-    restartToHome();
-    return;
-  }
-#endif
 
   if (state == State::Ejected || state == State::Disconnected || state == State::Unsupported) {
     restartToHome();

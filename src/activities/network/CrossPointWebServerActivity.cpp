@@ -7,6 +7,7 @@
 #include <Memory.h>
 #include <WiFi.h>
 
+#include <cctype>
 #include <cstddef>
 
 #include "MappedInputManager.h"
@@ -61,6 +62,22 @@ int barsForRssi(int rssi, int currentBars) {
   while (bars < 4 && rssi >= RISE_DBM[bars]) bars++;
   while (bars > 0 && rssi < FALL_DBM[bars - 1]) bars--;
   return bars;
+}
+
+std::string urlEncode(const std::string& value) {
+  static constexpr char hex[] = "0123456789ABCDEF";
+  std::string encoded;
+  encoded.reserve(value.size());
+  for (const unsigned char c : value) {
+    if (std::isalnum(c) || c == '-' || c == '_' || c == '.' || c == '~') {
+      encoded.push_back(static_cast<char>(c));
+    } else {
+      encoded.push_back('%');
+      encoded.push_back(hex[(c >> 4) & 0x0F]);
+      encoded.push_back(hex[c & 0x0F]);
+    }
+  }
+  return encoded;
 }
 }  // namespace
 
@@ -472,7 +489,8 @@ void CrossPointWebServerActivity::render(RenderLock&&) {
 }
 
 void CrossPointWebServerActivity::renderHeader() const {
-  const char* title = isApMode ? tr(STR_HOTSPOT_MODE) : tr(STR_FILE_TRANSFER);
+  const char* title = notesConnectMode ? tr(STR_NOTES_CONNECT)
+                                       : (isApMode ? tr(STR_HOTSPOT_MODE) : tr(STR_FILE_TRANSFER));
   if (mappedInput.hasTouchHardware()) {
     TouchHeaderBackButton::drawCompact(renderer, title);
   } else {
@@ -522,8 +540,15 @@ void CrossPointWebServerActivity::renderServerRunning() const {
                       EpdFontFamily::BOLD);
     startY += height10 + metrics.verticalSpacing * 2;
 
+    const std::string notesSuffix = notesConnectMode
+                                        ? std::string("highlights?path=") + urlEncode(returnBookPath)
+                                        : std::string{};
     std::string hostnameUrl = std::string("http://") + AP_HOSTNAME + ".local/";
     std::string ipUrl = tr(STR_OR_HTTP_PREFIX) + connectedIP + "/";
+    if (notesConnectMode) {
+      hostnameUrl += notesSuffix;
+      ipUrl += notesSuffix;
+    }
 
     // Show QR code for URL
     const Rect qrBoundsUrl(metrics.contentSidePadding, startY, QR_CODE_WIDTH, QR_CODE_HEIGHT);

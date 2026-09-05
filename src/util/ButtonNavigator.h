@@ -45,9 +45,9 @@ class ButtonNavigator final {
   [[nodiscard]] static int previousPageIndex(int currentIndex, int totalItems, int itemsPerPage);
 
   [[nodiscard]] static Buttons getNextButtons() {
-    return {MappedInputManager::Button::Down, MappedInputManager::Button::Right};
+    return {MappedInputManager::Button::NavNext};
   }
   [[nodiscard]] static Buttons getPreviousButtons() {
-    return {MappedInputManager::Button::Up, MappedInputManager::Button::Left};
+    return {MappedInputManager::Button::NavPrevious};
   }
 };

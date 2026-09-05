@@ -6,6 +6,7 @@
 #include "Arduino.h"
 #include "HalStorage.h"
 #include "Logging.h"
+#include "esp_system.h"
 #include "esp_debug_helpers.h"
 #include "esp_private/esp_cpu_internal.h"
 #include "esp_private/esp_system_attr.h"
@@ -131,6 +132,31 @@ void IRAM_ATTR __wrap_panic_print_backtrace(const void* frame, int core) {
 
 namespace HalSystem {
 
+namespace {
+const char* resetReasonName(const esp_reset_reason_t reason) {
+  switch (reason) {
+    case ESP_RST_INT_WDT:
+      return "interrupt watchdog";
+    case ESP_RST_TASK_WDT:
+      return "task watchdog";
+    case ESP_RST_WDT:
+      return "watchdog";
+    case ESP_RST_PANIC:
+      return "panic";
+    case ESP_RST_CPU_LOCKUP:
+      return "CPU lockup";
+    case ESP_RST_BROWNOUT:
+      return "brownout";
+    case ESP_RST_POWERON:
+      return "power-on";
+    case ESP_RST_DEEPSLEEP:
+      return "deep sleep";
+    default:
+      return "other";
+  }
+}
+}  // namespace
+
 void begin() {
   // On a panic reboot, preserve diagnostics until checkPanic() has tried to write them to the SD card.
   // Ordinary boots clear any stale retained diagnostics.
@@ -186,7 +212,11 @@ std::string getPanicInfo(bool full) {
 
     info += "INKademic version: " INKADEMIC_VERSION;
     info += "\nCrossInk device type: " INKADEMIC_FIRMWARE_DEVICE_TYPE;
-    info += "\n\nPanic reason: " + std::string(panicMessage);
+    const esp_reset_reason_t resetReason = esp_reset_reason();
+    info += "\n\nReset reason: " + std::string(resetReasonName(resetReason));
+    info += " (" + std::to_string(static_cast<int>(resetReason)) + ")";
+    info += "\nPanic reason: " +
+            std::string(panicMessage[0] != '\0' ? panicMessage : "no panic frame captured");
     info += "\n\nLast logs:\n" + getLastLogs();
     auto toHex = [](uint32_t value) {
       char buffer[9];
@@ -227,7 +257,9 @@ bool isRebootFromPanic() {
 
   const bool watchdogReset =
       resetReason == ESP_RST_INT_WDT || resetReason == ESP_RST_TASK_WDT || resetReason == ESP_RST_WDT;
-  return watchdogReset && panicCaptureMarker == PANIC_CAPTURE_MAGIC;
+  // A watchdog reset without the panic wrapper is still actionable: report it
+  // after boot so a stalled render/network task is not silently discarded.
+  return watchdogReset || panicCaptureMarker == PANIC_CAPTURE_MAGIC;
 }
 
 }  // namespace HalSystem

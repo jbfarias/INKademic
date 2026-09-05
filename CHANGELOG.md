@@ -1,3 +1,33 @@
+## [Unreleased]
+
+### Fixed
+
+- Exposed **Restore frontlight on wake** on X4 Pro and its simulator, using the
+  same persisted setting already supported by the other frontlit profiles.
+- Made X4 Pro side keys work as previous/next navigation in settings, lists,
+  dialogs, and other non-reader screens while preserving their reader page-turn
+  mapping.
+- Made USB Drive recover after host removal or MSC I/O errors with host
+  disconnect handling, bounded waits, and SD-card remount recovery.
+- Replaced the legacy boot/sleep bitmap with the INKademic book-and-pen logo.
+- Added YACP-inspired quick resume and idle CPU power saving while preserving
+  the retained reader frame and frontlight policy on wake.
+- Added **Notes Connect**: the reader menu can start the X4 Pro hotspot and
+  show a QR link directly to the current book's academic notes.
+- Made JSON settings/state writes streaming, atomic, rollback-safe, and
+  no-op-aware to reduce RAM pressure and unnecessary SD-card writes.
+- Added a main-task watchdog and post-failure crash reports for watchdog
+  resets, including the reset reason and retained logs.
+- Enabled OTA bootloader rollback and signed Ed25519 firmware verification for
+  X4 Pro images; the release signer is `scripts/sign_ota.py`.
+
+### Reviewed upstream improvements
+
+- Adapted the logical navigation and USB lifecycle patterns from the current
+  [CrossPoint Reader input mapping](https://github.com/crosspoint-reader/crosspoint-reader/blob/develop/src/MappedInputManager.cpp)
+  and [USB Drive activity](https://github.com/crosspoint-reader/crosspoint-reader/blob/develop/src/activities/network/UsbDriveActivity.cpp),
+  keeping INKademic's academic activities and storage formats intact.
+
 ## [v1.7.0-rc.2] - 2026-09-05
 
 ### Added

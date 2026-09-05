@@ -142,6 +142,11 @@ bool HalStorage::beginUsbDrive() {
   }
   if (!usbDriveContext->massStorage.begin(blockDevice)) {
     LOG_ERR("USB", "USB Drive MSC initialization failed");
+    // beginUsbDrive() temporarily detached the filesystem. Remount it when
+    // MSC startup fails so the next attempt does not require a reboot.
+    if (!SDCard.begin()) {
+      LOG_ERR("USB", "Unable to remount SD card after USB Drive startup failure");
+    }
     return false;
   }
   return true;
@@ -150,6 +155,13 @@ bool HalStorage::beginUsbDrive() {
 #else
   return false;
 #endif
+}
+
+bool HalStorage::disconnectUsbDriveHost() {
+#if FREEINK_CAP_USB_MSC
+  if (usbDriveContext) return usbDriveContext->massStorage.disconnectHost();
+#endif
+  return false;
 }
 
 void HalStorage::endUsbDrive() {

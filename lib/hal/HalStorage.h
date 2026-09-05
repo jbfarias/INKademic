@@ -48,6 +48,9 @@ class HalStorage {
   void installDateTimeCallback(const uint8_t* utcOffsetQuarterHoursBiased);
 
   bool beginUsbDrive();
+  // Ask TinyUSB to detach the MSC function so the application can reclaim the
+  // SD card after an I/O error or a host that did not finish ejecting cleanly.
+  bool disconnectUsbDriveHost();
   void endUsbDrive();
   UsbDriveState usbDriveState() const;
 

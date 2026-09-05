@@ -162,6 +162,16 @@ bool MappedInputManager::mapButton(const Button button, bool (HalGPIO::*fn)(uint
     case Button::PageForward:
       // Reader page navigation uses side buttons and can be swapped via settings.
       return readMappedSideButtons(gpio, fn, side.pageForwardPrimary, side.pageForwardSecondary);
+    case Button::NavNext:
+      // Menu navigation accepts the physical side Next key and the logical
+      // front Right key. This is intentionally separate from PageForward so
+      // the X4 Pro side buttons work in settings and dialogs as well.
+      return mapButton(Button::Down, fn) || mapButton(Button::Right, fn);
+    case Button::NavPrevious:
+      // Menu navigation accepts the physical side Previous key and the logical
+      // front Left key. Reader orientation handling is inherited from those
+      // logical mappings.
+      return mapButton(Button::Up, fn) || mapButton(Button::Left, fn);
   }
 
   return false;

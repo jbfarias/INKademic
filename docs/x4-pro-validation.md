@@ -23,21 +23,32 @@ The X4 Pro scenario exercises touch page turns, the frontlight panel, the
 capacitive Home key, reader-menu access with touch disabled, menu tabs and
 reader-options scrolling.
 
+The next physical validation pass must also cover the fixes currently tracked
+for the next release candidate: the **Restore frontlight on wake** setting must
+be visible under Display, both side keys must navigate lists and dialogs as
+previous/next, USB Drive must return to Home after the host ejects or the cable
+is removed, and the INKademic book-and-pen logo must appear during boot and
+sleep.
+
 ## Physical-device checklist
 
 Before publishing a firmware build, verify the following on an actual X4 Pro:
 
-1. Cold boot and wake from sleep render the display with the correct
+1. Cold boot and wake from sleep render the INKademic logo and display with the correct
    orientation and without a mirrored image.
-2. Brightness can be reduced to the expected low level and warm/cool control
+2. **Restore frontlight on wake** is present in Display settings and, when enabled,
+   preserves the light's on/off state after sleep and Quick Lock.
+3. Brightness can be reduced to the expected low level and warm/cool control
    remains responsive.
-3. Touch page turns, edge gestures, the capacitive Home key and touch-disabled
+4. Touch page turns, both physical side keys, edge gestures, the capacitive Home key and touch-disabled
    reader mode do not trigger duplicate actions.
-4. Power + Up, Quick Lock, Home-key shortcuts and USB Drive return to the
+5. Power + Up, Quick Lock, Home-key shortcuts and USB Drive return to the
    reader without losing the current page or pending annotation.
-5. Battery percentage changes after charging and after a normal reading
+6. Removing the USB cable after the computer mounts or ejects the SD card
+   returns to Home without pressing Reset; a failed mount also returns cleanly.
+7. Battery percentage changes after charging and after a normal reading
    session; the device does not reboot or drain unusually during sleep.
-6. A large text EPUB, a table-heavy EPUB, an image-heavy EPUB and an EPUB
+8. A large text EPUB, a table-heavy EPUB, an image-heavy EPUB and an EPUB
    with a long table of contents open or fall back safely without a reboot.
 
 Record the firmware version, SDK revision, display-controller variant and test

@@ -8,7 +8,9 @@ class OtaUpdater {
   std::string latestVersion;
   std::string otaUrl;
   std::string otaSha256;
+  std::string otaSignatureUrl;
   size_t otaSize = 0;
+  size_t otaSignatureSize = 0;
   size_t processedSize = 0;
   size_t totalSize = 0;
 
@@ -26,6 +28,8 @@ class OtaUpdater {
     CANCELLED_ERROR,
     HASH_MISMATCH_ERROR,
     WRONG_DEVICE_ERROR,
+    SIGNATURE_MISSING_ERROR,
+    SIGNATURE_INVALID_ERROR,
   };
 
   size_t getOtaSize() const { return otaSize; }

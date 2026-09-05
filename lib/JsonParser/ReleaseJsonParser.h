@@ -9,13 +9,14 @@ class ReleaseJsonParser {
  public:
   using AssetMatcher = bool (*)(const char* assetName);
 
-  explicit ReleaseJsonParser(AssetMatcher assetMatcher = nullptr);
+  explicit ReleaseJsonParser(AssetMatcher assetMatcher = nullptr, AssetMatcher signatureMatcher = nullptr);
 
   ReleaseJsonParser(const ReleaseJsonParser&) = delete;
   ReleaseJsonParser& operator=(const ReleaseJsonParser&) = delete;
 
   void reset();
   void setAssetMatcher(AssetMatcher assetMatcher);
+  void setSignatureMatcher(AssetMatcher signatureMatcher);
   void feed(const char* data, size_t len);
 
   bool foundTag() const;
@@ -24,6 +25,9 @@ class ReleaseJsonParser {
   const char* getFirmwareUrl() const;
   size_t getFirmwareSize() const;
   const char* getFirmwareSha256() const;
+  bool foundSignature() const;
+  const char* getSignatureUrl() const;
+  size_t getSignatureSize() const;
 
  private:
   enum class Position : uint8_t {
@@ -41,6 +45,7 @@ class ReleaseJsonParser {
     ASSET_SIZE,
     ASSET_SHA256,
     ASSET_DIGEST,
+    ASSET_SIGNATURE,
   };
 
   static void sOnKey(void* ctx, const char* key, size_t len);
@@ -57,6 +62,7 @@ class ReleaseJsonParser {
 
   StreamingJsonParser parser;
   AssetMatcher assetMatcher;
+  AssetMatcher signatureMatcher;
 
   Position position;
   LastKey lastKey;
@@ -69,6 +75,10 @@ class ReleaseJsonParser {
   size_t firmwareSize;
   bool tagFound;
   bool firmwareFound;
+
+  char signatureUrl[512];
+  size_t signatureSize;
+  bool signatureFound;
 
   char currentAssetName[96];
   char currentAssetUrl[512];

@@ -32,6 +32,11 @@ Note: Even though some actions assigned to the front buttons could be used globa
 - Orientation aware
 - Long-press action
 
+On the X4 Pro, the two physical side keys are also used as **previous/next
+navigation** in settings, lists, and dialogs. Their reader behavior remains
+controlled by the Side Button Layout setting, so the same keys can turn pages
+while reading without becoming ambiguous elsewhere in the interface.
+
 ### Page Turn Gesture
 
 On touchscreen devices, **Page Turn Gesture** is the last option in

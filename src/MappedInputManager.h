@@ -8,8 +8,11 @@ class GfxRenderer;
 
 class MappedInputManager {
  public:
-  enum class Button { Back, Confirm, Left, Right, Up, Down, Power, PageBack, PageForward };
-  static constexpr size_t BUTTON_COUNT = static_cast<size_t>(Button::PageForward) + 1;
+  // Logical navigation keeps menu selection separate from reader page turns.
+  // X4 Pro exposes its physical side keys as Up/Down, while classic boards may
+  // use the front Left/Right buttons for the same menu actions.
+  enum class Button { Back, Confirm, Left, Right, Up, Down, Power, PageBack, PageForward, NavNext, NavPrevious };
+  static constexpr size_t BUTTON_COUNT = static_cast<size_t>(Button::NavPrevious) + 1;
   enum class SwipeDir { None, Left, Right, Up, Down };
 
   struct Labels {
