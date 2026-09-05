@@ -1,6 +1,13 @@
 name: Sign X4 Pro OTA image
 
 on:
+  push:
+    branches:
+      - codex/1.7.0-rc.2
+    paths:
+      - ".pio/build/x4-pro/firmware-x4-pro-v*.bin"
+      - "scripts/sign_ota.py"
+      - ".github/workflows/sign_x4_pro.yml"
   workflow_dispatch:
     inputs:
       version:
