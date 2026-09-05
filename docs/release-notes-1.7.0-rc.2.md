@@ -44,6 +44,6 @@ These projects are references for selected features and compatibility decisions;
 - X4 Pro and X3/X4 simulator builds completed successfully; the X4 Pro smoke test passed with three page turns.
 - Host-side syntax, signing-script help, and whitespace validation passed for the build and release changes.
 
-The X4 Pro release also includes `firmware-x4-pro-v1.7.0-rc.2.bin.sig`, a 64-byte Ed25519 signature over the firmware SHA-256 digest. The GitHub Actions secret `INKADEMIC_OTA_ED25519_PRIVATE_KEY` must contain the matching PEM key for future automated releases.
+The X4 Pro OTA path supports a 64-byte Ed25519 signature over the firmware SHA-256 digest. This refresh intentionally removes the previous `.sig` asset because it was for the older image and the GitHub Actions secret `INKADEMIC_OTA_ED25519_PRIVATE_KEY` is not currently configured. Until that secret is configured and the signature is regenerated, use the refreshed image through the SD/recovery installer; do not use the old signature with this binary.
 
 This is a release candidate. Physical X4 Pro validation should be completed using [the validation checklist](x4-pro-validation.md) before promoting it to a stable release.
