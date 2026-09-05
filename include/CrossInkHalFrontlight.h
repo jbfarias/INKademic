@@ -35,6 +35,8 @@ class HalFrontlight {
   void setBrightness(const uint8_t percent) { lastBrightness = percent > 100 ? 100 : percent; }
   void setWarmth(const uint8_t percent) { lastWarmth = percent > 100 ? 100 : percent; }
   void setOn(const bool on) { lit = on; }
+  void releaseOnWake() {}
+  void parkForSleep() {}
   uint8_t brightness() const { return lastBrightness; }
   uint8_t warmth() const { return lastWarmth; }
   bool isOn() const { return lit; }

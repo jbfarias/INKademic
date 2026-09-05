@@ -969,6 +969,29 @@ void mirrorWakeShortPressToNvs() {
 #endif
 }
 
+void persistFrontlightStateBeforeSleep() {
+  if (!Frontlight.present()) return;
+
+  // Quick Lock intentionally blanks the live PWM output without changing the
+  // user's preferred state. Preserve that pre-lock intent if sleep is entered
+  // while the lock is active; otherwise use the live HAL values.
+  const bool desiredOn = buttonShortcutController.isQuickLocked() ? APP_STATE.quickLockRestoreFrontlight
+                                                                   : Frontlight.isOn();
+  const uint8_t brightness = Frontlight.brightness();
+  const uint8_t warmth = Frontlight.warmth();
+  const uint8_t on = desiredOn ? 1 : 0;
+  const bool changed = SETTINGS.frontlightBrightness != brightness || SETTINGS.frontlightWarmth != warmth ||
+                       SETTINGS.frontlightOn != on;
+  SETTINGS.frontlightBrightness = brightness;
+  SETTINGS.frontlightWarmth = warmth;
+  SETTINGS.frontlightOn = on;
+  if (changed && !SETTINGS.saveToFile()) {
+    LOG_ERR("LIGHT", "Failed to persist frontlight before deep sleep");
+  }
+  LOG_DBG("LIGHT", "Sleep snapshot: brightness=%u warmth=%u on=%u restore=%u quickLock=%u", brightness, warmth, on,
+          SETTINGS.frontlightRestoreOnWake, buttonShortcutController.isQuickLocked() ? 1 : 0);
+}
+
 // Enter deep sleep mode
 void enterDeepSleep(bool fromTimeout) {
   HalPowerManager::Lock powerLock;  // Ensure we are at normal CPU frequency for sleep preparation
@@ -982,6 +1005,7 @@ void enterDeepSleep(bool fromTimeout) {
   // it visible until the first useful reader or Home paint replaces it.
   APP_STATE.showBootScreen = false;
 
+  persistFrontlightStateBeforeSleep();
   APP_STATE.saveToFile();
 
   // Commit to sleeping before goToSleep() runs the outgoing activity's onExit():
@@ -1007,13 +1031,15 @@ void enterDeepSleep(bool fromTimeout) {
   }
 
   // The simulator owns a separate POSIX storage backend; it never cuts SD rails.
-#ifndef SIMULATOR
-  Storage.shutdown();
-#endif
   putTiltSensorToSleepForDeepSleep();
+  Frontlight.parkForSleep();
   display.deepSleep();
   mirrorWakeShortPressToNvs();  // next boot's wake-hold check reads this pre-SD
   LOG_DBG("MAIN", "Entering deep sleep");
+  flushCapturedLogs();
+#ifndef SIMULATOR
+  Storage.shutdown();
+#endif
 
   powerManager.startDeepSleep(gpio);
 }
@@ -1212,6 +1238,7 @@ void setup() {
     activityManager.goToFullScreenMessage("SD card error", EpdFontFamily::BOLD);
     return;
   }
+  flushCapturedLogs();
   logBootHeap("storage ready");
 
   HalSystem::checkPanic();
@@ -1222,7 +1249,7 @@ void setup() {
   I18N.setLanguage(static_cast<Language>(SETTINGS.language));
   if (!isNetworkResume) {
     RECENT_BOOKS.loadFromFile();
-    logBootHeap("settings and recent books loaded");
+  logBootHeap("settings and recent books loaded");
     KOREADER_STORE.loadFromFile();
     logBootHeap("sync credentials loaded");
     Dictionary::isValidDictionary();
@@ -1238,7 +1265,11 @@ void setup() {
   const bool restoreLightOn = SETTINGS.frontlightOn != 0 &&
       (SETTINGS.frontlightRestoreOnWake != 0 || (isSilentReboot && !isNetworkResume)) &&
       !APP_STATE.quickLockResumePending;
+  LOG_INF("LIGHT", "Wake policy: savedOn=%u restoreOnWake=%u brightness=%u warmth=%u quickLockPending=%u -> on=%u",
+          SETTINGS.frontlightOn, SETTINGS.frontlightRestoreOnWake, SETTINGS.frontlightBrightness,
+          SETTINGS.frontlightWarmth, APP_STATE.quickLockResumePending ? 1 : 0, restoreLightOn ? 1 : 0);
   Frontlight.begin(SETTINGS.frontlightBrightness, SETTINGS.frontlightWarmth, restoreLightOn);
+  flushCapturedLogs();
 
   // Re-sync the wake-hold NVS mirror with the freshly-loaded settings, covering
   // a setting change followed by power loss without a clean sleep. (The wake
@@ -1465,6 +1496,11 @@ void setup() {
 
 void loop() {
   feedMainWatchdog();
+  static unsigned long lastLogCaptureFlushAt = 0;
+  if (millis() - lastLogCaptureFlushAt >= 5000) {
+    flushCapturedLogs();
+    lastLogCaptureFlushAt = millis();
+  }
   static unsigned long maxLoopDuration = 0;
   const unsigned long loopStartTime = millis();
   static unsigned long lastMemPrint = 0;

@@ -59,6 +59,14 @@ void logPrintf(const char* level, const char* origin, const char* format, ...);
 
 std::string getLastLogs();
 void clearLastLogs();
+// Flushes the bounded diagnostic capture to the SD card when enabled. The
+// normal build is a no-op; callers may invoke it from the cooperative main
+// loop and immediately before storage shutdown.
+void flushCapturedLogs();
+// Temporarily stop persistent capture while a long SD/flash transaction owns
+// the storage path. The RTC crash ring remains active during the pause.
+void pauseCapturedLogs();
+void resumeCapturedLogs();
 // Validates the RTC log state (magic word + logHead range). Returns true if
 // corruption was detected (magic mismatch or logHead out of range), meaning
 // logMessages is untrusted garbage. Callers should call clearLastLogs() when

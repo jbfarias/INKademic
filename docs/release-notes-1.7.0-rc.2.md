@@ -7,7 +7,7 @@ Release candidate dated 5 September 2026.
 | Device | File | Size | SHA-256 |
 | --- | --- | ---: | --- |
 | X3 / X4 | `firmware-x3-x4-v1.7.0-rc.2.bin` | 6,322,608 bytes | `973e41ce47aa37e1b118ef536eae07044f442592177df76962c4ea810caa4c2a` |
-| X4 Pro | `firmware-x4-pro-v1.7.0-rc.2.bin` | 6,216,688 bytes | `577d442f3b56484d74b20a151f285df83619e4fde29896c2335355a4995689b5` |
+| X4 Pro | `firmware-x4-pro-v1.7.0-rc.2.bin` | 6,254,048 bytes | `89b6c58beee6a199b025a14f6ed30b4d49287923be0709e3aa4969774a812afc` |
 | Sticky | `firmware-sticky-v1.7.0-rc.2.bin` | 6,117,904 bytes | `189e66bf2c8f0f991f3309f262def7f75d972b8732680e8a325de6a1cc9b5bc0` |
 
 ## Included improvements
@@ -25,6 +25,9 @@ Release candidate dated 5 September 2026.
 - Separated pioarduino SDK cache decisions by chip and SDK configuration.
 - Stopped the SD backend before deep sleep, preserved the X4 Pro frontlight policy across wake and Quick Lock, and hardened compressed EPUB reads against invalid or oversized storage results.
 - Applied the new INKademic logo in the web companion pages and firmware web portal.
+- Exposed the X4 Pro “Restore light on wake” setting, persisted the live frontlight state before sleep, and parked/released the PWM driver safely around deep sleep.
+- Hardened SD firmware installation on X4 Pro: the installer now feeds the task watchdog for every transfer block and pauses persistent log capture while the OTA partition is being erased and written.
+- Corrected the X4 Pro portrait logo orientation and kept bounded diagnostic capture available after reboot at `/inkademic-runtime.log`.
 
 ## Forks and references
 
@@ -36,7 +39,7 @@ These projects are references for selected features and compatibility decisions;
 
 - X3/X4, Sticky, and X4 Pro production builds completed successfully with OTA-size checks.
 - Simulator builds for X3/X4 and X4 Pro completed successfully and reported `INKademic version 1.7.0-rc.2`.
-- The X4 Pro production image uses 94.9% of the OTA application partition, leaving 336,912 bytes free.
+- The X4 Pro production image uses 95.4% of the OTA application partition, leaving 299,552 bytes free.
 - The default image leaves 230,992 bytes in its OTA application partition; Sticky leaves 435,696 bytes.
 - X4 Pro and X3/X4 simulator builds completed successfully; the X4 Pro smoke test passed with three page turns.
 - Host-side syntax, signing-script help, and whitespace validation passed for the build and release changes.

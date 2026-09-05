@@ -5,6 +5,7 @@
 #include <Logging.h>
 #include <esp_ota_ops.h>
 #include <esp_partition.h>
+#include <esp_task_wdt.h>
 #include <mbedtls/sha256.h>
 #include <spi_flash_mmap.h>
 
@@ -99,6 +100,8 @@ Result feedHashAndChecksum(HalFile& file, size_t length, uint8_t* xorAccum, mbed
       *xorAccum = acc;
     }
     remaining -= want;
+    esp_task_wdt_reset();
+    yield();
   }
   return Result::OK;
 }
@@ -291,6 +294,15 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
     return Result::OOM;
   }
 
+  // The SD-to-flash transaction can take longer than the main loop watchdog
+  // interval. Keep the RTC crash ring active, but do not let persistent log
+  // capture compete for the storage path while the firmware image is being
+  // streamed and the OTA partition is being erased/written.
+  struct CapturePauseGuard {
+    CapturePauseGuard() { pauseCapturedLogs(); }
+    ~CapturePauseGuard() { resumeCapturedLogs(); }
+  } capturePauseGuard;
+
   // Interleave erase + write so the progress bar advances 0→100% smoothly
   // rather than stalling for several seconds during a single up-front erase.
   size_t streamPos = 0;
@@ -323,6 +335,7 @@ Result flashFromSdPath(const char* sdPath, ProgressCb onProgress, void* ctx, boo
     }
     streamPos += want;
     if (onProgress) onProgress(streamPos, firmwareSize, ctx);
+    esp_task_wdt_reset();
     delay(1);
   }
   file.close();

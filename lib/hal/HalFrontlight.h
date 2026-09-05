@@ -23,6 +23,13 @@ class HalFrontlight {
   void setWarmth(uint8_t warmPercent);
   void setOn(bool on);
 
+  // Release a deep-sleep pad hold before the PWM channels are attached again.
+  // On builds without the X4 Pro light-sleep/deep-sleep path this is a no-op.
+  void releaseOnWake();
+  // Cut the LEDC outputs and hold them off while the MCU is in deep sleep.
+  // The logical state remains in SETTINGS and is restored by begin().
+  void parkForSleep();
+
   uint8_t brightness() const { return lastBrightness; }
   uint8_t warmth() const { return manager.colorTemperature(); }
   bool isOn() const { return lit; }

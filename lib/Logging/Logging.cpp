@@ -3,7 +3,14 @@
 #include <BoardConfig.h>
 #include <esp_rom_sys.h>
 
+#ifdef ENABLE_LOG_CAPTURE
+#include <HalStorage.h>
+#include <common/FsApiConstants.h>
+#endif
+
+#include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include <string>
 
 #ifdef SIMULATOR
@@ -29,6 +36,38 @@ RTC_NOINIT_ATTR size_t logHead = 0;
 // never properly initialized.
 RTC_NOINIT_ATTR uint32_t rtcLogMagic;
 static constexpr uint32_t LOG_RTC_MAGIC = 0xDEADBEEF;
+
+#ifdef ENABLE_LOG_CAPTURE
+namespace {
+constexpr char LOG_CAPTURE_PATH[] = "/inkademic-runtime.log";
+constexpr size_t LOG_CAPTURE_BUFFER_SIZE = 4096;
+constexpr uint64_t LOG_CAPTURE_MAX_FILE_SIZE = 128 * 1024;
+
+char logCaptureBuffer[LOG_CAPTURE_BUFFER_SIZE];
+size_t logCaptureSize = 0;
+bool logCaptureBusy = false;
+bool logCapturePaused = false;
+
+void appendToPersistentCapture(const char* message) {
+  if (logCaptureBusy || logCapturePaused || !message) return;
+  const size_t messageLength = strnlen(message, MAX_ENTRY_LEN);
+  if (messageLength == 0) return;
+
+  // Keep the newest diagnostic window if the main loop is temporarily busy.
+  // The next cooperative flush will persist it without allocating heap memory.
+  if (messageLength > LOG_CAPTURE_BUFFER_SIZE) {
+    memcpy(logCaptureBuffer, message + messageLength - LOG_CAPTURE_BUFFER_SIZE, LOG_CAPTURE_BUFFER_SIZE);
+    logCaptureSize = LOG_CAPTURE_BUFFER_SIZE;
+    return;
+  }
+  if (logCaptureSize + messageLength > LOG_CAPTURE_BUFFER_SIZE) {
+    logCaptureSize = 0;
+  }
+  memcpy(logCaptureBuffer + logCaptureSize, message, messageLength);
+  logCaptureSize += messageLength;
+}
+}  // namespace
+#endif
 
 void addToLogRingBuffer(const char* message) {
   // Add the message to the ring buffer, overwriting old messages if necessary.
@@ -86,6 +125,44 @@ void logPrintf(const char* level, const char* origin, const char* format, ...) {
   }
 #endif
   addToLogRingBuffer(buf);
+#ifdef ENABLE_LOG_CAPTURE
+  appendToPersistentCapture(buf);
+#endif
+}
+
+void flushCapturedLogs() {
+#ifdef ENABLE_LOG_CAPTURE
+  if (logCaptureBusy || logCapturePaused || logCaptureSize == 0 || !Storage.ready()) return;
+
+  logCaptureBusy = true;
+  bool written = false;
+  auto file = Storage.open(LOG_CAPTURE_PATH, O_WRITE | O_CREAT | O_APPEND);
+  if (file) {
+    if (file.fileSize64() >= LOG_CAPTURE_MAX_FILE_SIZE) {
+      file.close();
+      file = Storage.open(LOG_CAPTURE_PATH, O_WRITE | O_CREAT | O_TRUNC);
+    }
+    if (file) {
+      written = file.write(logCaptureBuffer, logCaptureSize) == logCaptureSize;
+      file.sync();
+      file.close();
+    }
+  }
+  if (written) logCaptureSize = 0;
+  logCaptureBusy = false;
+#endif
+}
+
+void pauseCapturedLogs() {
+#ifdef ENABLE_LOG_CAPTURE
+  logCapturePaused = true;
+#endif
+}
+
+void resumeCapturedLogs() {
+#ifdef ENABLE_LOG_CAPTURE
+  logCapturePaused = false;
+#endif
 }
 
 std::string getLastLogs() {

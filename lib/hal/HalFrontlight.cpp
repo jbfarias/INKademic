@@ -8,6 +8,9 @@ void HalFrontlight::begin(const uint8_t brightness, const uint8_t warmth, const 
   if (!manager.present()) {
     return;
   }
+#ifdef FREEINK_FRONTLIGHT_LS
+  manager.releaseOnWake();
+#endif
   manager.begin();
   lastBrightness = brightness > 100 ? 100 : brightness;
   manager.setColorTemperature(warmth > 100 ? 100 : warmth);
@@ -33,4 +36,16 @@ void HalFrontlight::setOn(const bool on) {
   }
   lit = on;
   manager.setBrightness(lit ? lastBrightness : 0);
+}
+
+void HalFrontlight::releaseOnWake() {
+#ifdef FREEINK_FRONTLIGHT_LS
+  if (manager.present()) manager.releaseOnWake();
+#endif
+}
+
+void HalFrontlight::parkForSleep() {
+#ifdef FREEINK_FRONTLIGHT_LS
+  if (manager.present()) manager.park();
+#endif
 }
