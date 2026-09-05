@@ -1,0 +1,46 @@
+name: Sign X4 Pro OTA image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Firmware version whose tracked X4 Pro image should be signed"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  sign-x4-pro:
+    runs-on: ubuntu-latest
+    env:
+      OTA_PRIVATE_KEY: ${{ secrets.INKADEMIC_OTA_ED25519_PRIVATE_KEY }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Sign tracked X4 Pro image
+        shell: bash
+        run: |
+          if [ -z "$OTA_PRIVATE_KEY" ]; then
+            echo "::error::INKADEMIC_OTA_ED25519_PRIVATE_KEY is not set"
+            exit 1
+          fi
+          image=".pio/build/x4-pro/firmware-x4-pro-v${VERSION}.bin"
+          if [ ! -f "$image" ]; then
+            echo "::error::Tracked X4 Pro image not found: $image"
+            exit 1
+          fi
+          key_file=$(mktemp)
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s\n' "$OTA_PRIVATE_KEY" > "$key_file"
+          python3 scripts/sign_ota.py "$image" --key "$key_file"
+
+      - name: Upload X4 Pro signature artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: x4-pro-ota-signature-${{ inputs.version }}
+          path: .pio/build/x4-pro/firmware-x4-pro-v${{ inputs.version }}.bin.sig
+          if-no-files-found: error
