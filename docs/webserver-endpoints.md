@@ -73,7 +73,7 @@ Returns the current staging/install state. Example:
 ```json
 {
   "state": "ready",
-  "version": "1.7.1-rc.2",
+  "version": "1.7.2",
   "device": "x4-pro",
   "received": 6125712,
   "size": 6125712,

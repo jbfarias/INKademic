@@ -4,6 +4,9 @@
 #include <Logging.h>
 #include <Memory.h>
 #include <NaturalSort.h>
+#ifndef SIMULATOR
+#include <esp_task_wdt.h>
+#endif
 
 #include <algorithm>
 #include <cstring>
@@ -39,7 +42,12 @@ uint64_t fnv1a64(const char* s) {
 }
 
 void maybeYield(uint32_t& counter) {
-  if ((++counter & 0xFF) == 0) delay(1);
+  if ((++counter & 0x3F) == 0) {
+#ifndef SIMULATOR
+    esp_task_wdt_reset();
+#endif
+    delay(1);
+  }
 }
 }  // namespace
 

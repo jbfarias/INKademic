@@ -11,6 +11,9 @@
 #include <esp_crt_bundle.h>
 #include <esp_http_client.h>
 #include <strings.h>
+#ifndef SIMULATOR
+#include <esp_task_wdt.h>
+#endif
 
 #include <cstdio>
 #include <functional>
@@ -25,7 +28,9 @@ constexpr size_t PROGRESS_UPDATE_BYTES = 64 * 1024;
 constexpr uint32_t PROGRESS_UPDATE_MS = 250;
 constexpr int HTTP_RX_BUF = 4096;
 constexpr int HTTP_TX_BUF = 1024;
-constexpr int HTTP_TIMEOUT_MS = 60000;
+// Keep network setup bounded below the main-task watchdog window. The body
+// reader has its own idle timeout and continues to yield while data arrives.
+constexpr int HTTP_TIMEOUT_MS = 10000;
 constexpr int HTTP_READ_POLL_TIMEOUT_MS = 5000;
 constexpr uint32_t DOWNLOAD_IDLE_TIMEOUT_MS = 30000;
 constexpr size_t DEFAULT_DOWNLOAD_BUFFER_SIZE = 2048;
@@ -36,6 +41,12 @@ constexpr char HTTP_USER_AGENT[] =
 void logNetworkState(const char* phase) {
   LOG_DBG("HTTP", "%s: heap free=%u maxAlloc=%u wifi=%d rssi=%d", phase, ESP.getFreeHeap(), ESP.getMaxAllocHeap(),
           static_cast<int>(WiFi.status()), WiFi.status() == WL_CONNECTED ? WiFi.RSSI() : 0);
+}
+
+inline void feedNetworkWatchdog() {
+#ifndef SIMULATOR
+  esp_task_wdt_reset();
+#endif
 }
 
 void logDownloadState(const char* phase, const size_t downloaded, const size_t total, const uint32_t idleMs) {
@@ -208,6 +219,7 @@ HttpDownloader::DownloadError runGetWolfSsl(const std::string& url, const std::s
   ProgressNotifier progressNotifier(sink.progress);
 
   for (uint8_t hop = 0; hop < MAX_REDIRECTS; ++hop) {
+    feedNetworkWatchdog();
     ParsedUrl currentOrigin;
     const bool currentParsed = parseUrl(currentUrl, currentOrigin);
     const bool sendAuthorization = hasCredentials && currentParsed && sameOrigin(currentOrigin, credentialOrigin);
@@ -239,6 +251,7 @@ HttpDownloader::DownloadError runGetWolfSsl(const std::string& url, const std::s
     LOG_DBG("HTTP", "wolfSSL GET: %s", currentUrl.c_str());
     const int status = http.GET(
         [&http, &sink, &progressNotifier](const uint8_t* data, const size_t len) {
+          feedNetworkWatchdog();
           const int responseStatus = http.getStatus();
           const bool isResumeResponse = sink.resumeOffset > 0 && responseStatus == 206;
           if (responseStatus != 200 && !isResumeResponse) return true;
@@ -255,9 +268,11 @@ HttpDownloader::DownloadError runGetWolfSsl(const std::string& url, const std::s
           if (!sink.write(data, len)) return false;
           sink.downloaded += len;
           progressNotifier.notify(sink.downloaded, false);
+          feedNetworkWatchdog();
           return true;
         },
         [&sink]() { return isCancelRequested(sink.cancelFlag, sink.shouldCancel); });
+    feedNetworkWatchdog();
 
     if (http.aborted()) return HttpDownloader::ABORTED;
     if (sink.rangeIgnored) {
@@ -333,6 +348,7 @@ HttpDownloader::DownloadError runGetDefault(const std::string& url, const std::s
   const bool hasCredentials = !username.empty() && !password.empty() && parseUrl(url, credentialOrigin);
 
   for (uint8_t hop = 0; hop < MAX_REDIRECTS; ++hop) {
+    feedNetworkWatchdog();
     ParsedUrl currentOrigin;
     const bool currentParsed = parseUrl(currentUrl, currentOrigin);
     const bool sendAuthorization = hasCredentials && currentParsed && sameOrigin(currentOrigin, credentialOrigin);
@@ -357,7 +373,9 @@ HttpDownloader::DownloadError runGetDefault(const std::string& url, const std::s
 
     setRequestHeaders(client, username, password, sink.resumeOffset, sendAuthorization);
 
+    feedNetworkWatchdog();
     esp_err_t err = esp_http_client_open(client, 0);
+    feedNetworkWatchdog();
     if (err != ESP_OK) {
       LOG_ERR("HTTP", "Open failed: %s", esp_err_to_name(err));
       logTlsError(client, "Open failure");
@@ -366,7 +384,9 @@ HttpDownloader::DownloadError runGetDefault(const std::string& url, const std::s
       return HttpDownloader::HTTP_ERROR;
     }
 
+    feedNetworkWatchdog();
     int64_t responseLength = esp_http_client_fetch_headers(client);
+    feedNetworkWatchdog();
     const int status = esp_http_client_get_status_code(client);
     if (responseLength < 0) {
       LOG_ERR("HTTP", "Fetch headers failed: %lld", static_cast<long long>(responseLength));
@@ -451,12 +471,14 @@ HttpDownloader::DownloadError runGetDefault(const std::string& url, const std::s
     uint32_t lastReadMs = millis();
 #endif
     while (true) {
+      feedNetworkWatchdog();
       if (isCancelRequested(sink.cancelFlag, sink.shouldCancel)) {
         esp_http_client_cleanup(client);
         return HttpDownloader::ABORTED;
       }
 
       const int bytesRead = esp_http_client_read(client, buffer.get(), bufferSize);
+      feedNetworkWatchdog();
       if (bytesRead < 0) {
 #ifdef ESP_ERR_HTTP_EAGAIN
         if (bytesRead == -ESP_ERR_HTTP_EAGAIN) {
@@ -491,6 +513,7 @@ HttpDownloader::DownloadError runGetDefault(const std::string& url, const std::s
       if (sink.total > 0 && sink.total <= PROGRESS_UPDATE_BYTES) {
       }
       progressNotifier.notify(sink.downloaded, false);
+      feedNetworkWatchdog();
       if (sink.total > 0 && sink.downloaded >= sink.total) break;
       delay(0);
     }

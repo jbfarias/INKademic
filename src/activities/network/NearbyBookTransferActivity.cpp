@@ -21,6 +21,7 @@
 #include "components/TouchHeaderBackButton.h"
 #include "components/UITheme.h"
 #include "fontIds.h"
+#include "util/BookCacheUtils.h"
 
 #if defined(ARDUINO_ARCH_ESP32) && !defined(SIMULATOR)
 #include <esp_system.h>
@@ -513,6 +514,15 @@ bool NearbyBookTransferActivity::finishReceivedFile(const uint64_t expectedBytes
     return false;
   }
   if (replacing) Storage.remove(backupPath_.c_str());
+  // The received bytes may have the same filename as an older local book.
+  // Drop the derived EPUB/cache files before the next reader entry; otherwise
+  // stale chapter, image, and layout data can be paired with the new ZIP and
+  // make a valid transfer look corrupted. Progress and reader preferences are
+  // preserved by the cache helper; academic sidecars validate their document
+  // identity when the book is opened.
+  if (!clearBookCachePreservingUserState(finalPath_)) {
+    LOG_ERR(LOG_TAG, "Received EPUB cache could not be fully invalidated: %s", finalPath_.c_str());
+  }
   SleepImageIndex::invalidateForPath(finalPath_.c_str());
   return true;
 }

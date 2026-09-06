@@ -5,6 +5,9 @@
 #include <InflateStream.h>
 #include <Logging.h>
 #include <Memory.h>
+#ifndef SIMULATOR
+#include <esp_task_wdt.h>
+#endif
 
 #include <algorithm>
 
@@ -19,6 +22,14 @@ namespace {
 constexpr uint16_t ZIP_METHOD_STORED = 0;
 constexpr uint16_t ZIP_METHOD_DEFLATED = 8;
 constexpr size_t ONE_SHOT_DEFLATE_MAX_COMPRESSED_BYTES = 32768;
+
+inline void feedZipWatchdog(uint32_t& counter) {
+  if ((++counter & 0x3F) != 0) return;
+#ifndef SIMULATOR
+  esp_task_wdt_reset();
+#endif
+  delay(0);
+}
 
 // RAII zip: opens the zip if not already open, closes on destruction only if
 // it performed the open.  Removes the wasOpen/close boilerplate from every method.
@@ -536,8 +547,10 @@ int ZipFile::fillUncompressedSizes(const SizeTarget* targets, const size_t targe
   const SizeTarget* const targetEnd = targets + targetCount;
   uint32_t sig;
   char itemName[256];
+  uint32_t watchdogCounter = 0;
 
   while (file.available()) {
+    feedZipWatchdog(watchdogCounter);
     file.read(&sig, 4);
     if (sig != 0x02014b50) break;
 
@@ -606,8 +619,10 @@ int ZipFile::fillEntryIdentities(const EntryTarget* targets, const size_t target
   const EntryTarget* const targetEnd = targets + targetCount;
   uint32_t sig;
   char itemName[256];
+  uint32_t watchdogCounter = 0;
 
   while (file.available()) {
+    feedZipWatchdog(watchdogCounter);
     file.read(&sig, 4);
     if (sig != 0x02014b50) break;
 

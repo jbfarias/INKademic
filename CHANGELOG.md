@@ -1,5 +1,27 @@
 ## [Unreleased]
 
+## [1.7.2] - 2026-09-05
+
+### Changed
+
+- Promoted the watchdog-safe X4 Pro, academic annotation, browser firmware,
+  recovery, and reliability work from the release-candidate line to the 1.7.2
+  release.
+- Made the built-in OTA endpoint use the canonical `jbfarias/INKademic`
+  repository name, avoiding dependence on the former `INKacademic` spelling.
+- Published matching X3/X4, Sticky, X4 Pro, and X4 Pro recovery binaries.
+- Invalidated derived EPUB caches after nearby-device replacement, preventing a
+  valid transferred ZIP from being opened with stale chapter or image data.
+- Moved image-cache decode bands to X4 Pro PSRAM when available and batched
+  cache writes, reducing internal-heap pressure and first-page latency for
+  image-heavy EPUBs.
+- Fed the task watchdog during OTA manifest/download work, EPUB parsing, and
+  large file-index builds, and bounded network setup time so the X4 Pro does
+  not reboot while checking for updates or indexing dense books.
+- Built the X4 Pro application against its factory-compatible 16 MB A/B
+  partition map, while retaining the dedicated recovery target for full-slot
+  recovery.
+
 ## [1.7.1-rc.2] - 2026-09-05
 
 ### Added

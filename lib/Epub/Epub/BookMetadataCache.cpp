@@ -6,6 +6,9 @@
 #include <Serialization.h>
 #include <Utf8.h>
 #include <ZipFile.h>
+#ifndef SIMULATOR
+#include <esp_task_wdt.h>
+#endif
 
 #include <limits>
 
@@ -24,6 +27,14 @@ constexpr size_t BUILD_IO_BUFFER_SIZE = 4096;
 // Cap the reader-session speedup at 4KB on constrained C3 devices. EPUBs with
 // larger spines keep using the existing on-disk lookup path.
 constexpr uint16_t MAX_CACHED_CUMULATIVE_SIZES = 1024;
+
+inline void feedIndexWatchdog(const uint32_t counter) {
+  if ((counter & 0x3F) != 0) return;
+#ifndef SIMULATOR
+  esp_task_wdt_reset();
+#endif
+  delay(0);
+}
 
 // Entry (de)serializers, templated so they run over HalFile and the Buffered*
 // wrappers alike (two instantiations each -- a few hundred bytes of flash, in
@@ -130,6 +141,7 @@ bool BookMetadataCache::beginTocPass() {
       idx.hrefLen = static_cast<uint16_t>(entry.href.size());
       idx.spineIndex = static_cast<int16_t>(i);
       spineHrefIndex[i] = idx;
+      feedIndexWatchdog(static_cast<uint32_t>(i));
     }
     std::sort(spineHrefIndex.begin(), spineHrefIndex.end(),
               [](const SpineHrefIndexEntry& a, const SpineHrefIndexEntry& b) {
@@ -231,6 +243,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
     const uint32_t pos = spineIn.position();
     readSpineEntryFrom(spineIn);
     serialization::writePod(bookOut, pos + lutOffset + lutSize);
+    feedIndexWatchdog(static_cast<uint32_t>(i));
   }
   // Total size of the spine tmp file: entries land in book.bin after the toc LUT
   // and the full spine block, so toc LUT positions are offset by it.
@@ -242,6 +255,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
     const uint32_t pos = tocIn.position();
     readTocEntryFrom(tocIn);
     serialization::writePod(bookOut, pos + lutOffset + lutSize + spineBytes);
+    feedIndexWatchdog(static_cast<uint32_t>(i));
   }
 
   // LUTs complete
@@ -266,6 +280,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
   }
   for (size_t i = 0; i < spineToTocIndex.size(); ++i) {
     spineToTocIndex[i] = -1;
+    feedIndexWatchdog(static_cast<uint32_t>(i));
   }
   tocIn.seek(0);
   for (int j = 0; j < tocCount; j++) {
@@ -275,6 +290,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
         spineToTocIndex[tocEntry.spineIndex] = static_cast<int16_t>(j);
       }
     }
+    feedIndexWatchdog(static_cast<uint32_t>(j));
   }
 
   ZipFile zip(epubPath);
@@ -316,6 +332,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
       t.len = static_cast<uint16_t>(path.size());
       t.index = static_cast<uint16_t>(i);
       targets[i] = t;
+      feedIndexWatchdog(static_cast<uint32_t>(i));
     }
 
     std::sort(targets.begin(), targets.end(), [](const ZipFile::SizeTarget& a, const ZipFile::SizeTarget& b) {
@@ -373,6 +390,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
 
     // Write out spine data to book.bin
     writeSpineEntryTo(bookOut, spineEntry);
+    feedIndexWatchdog(static_cast<uint32_t>(i));
   }
   // Close opened zip file
   zip.close();
@@ -382,6 +400,7 @@ bool BookMetadataCache::buildBookBin(const std::string& epubPath, const BookMeta
   for (int i = 0; i < tocCount; i++) {
     auto tocEntry = readTocEntryFrom(tocIn);
     writeTocEntryTo(bookOut, tocEntry);
+    feedIndexWatchdog(static_cast<uint32_t>(i));
   }
 
   const bool written = bookOut.flush();

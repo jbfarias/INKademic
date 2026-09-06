@@ -2,8 +2,10 @@
 
 #include <HalStorage.h>
 #include <Logging.h>
+#include <Memory.h>
 #include <stdint.h>
 
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -38,6 +40,10 @@ struct PixelCache {
   int flushedRows;  // image-local rows already written to file
   HalFile file;
   std::string cachePathStr;
+  // Keep the decode/cache band out of the internal heap on PSRAM-equipped
+  // readers. X4 Pro otherwise loses a large contiguous block to a short-lived
+  // SD-cache buffer while JPEG/PNG decoder allocations are still active.
+  HeapByteBuffer bufferStorage;
   bool ok;
 
   PixelCache()
@@ -88,7 +94,9 @@ struct PixelCache {
     bandRows = wantRows;
 
     const size_t bufSize = (size_t)(bandRows + 1) * bytesPerRow;  // +1 spare zero row
-    buffer = (uint8_t*)malloc(bufSize);
+    bufferStorage = psramHeapAvailable() ? makePsramByteBufferNoThrow(bufSize) : HeapByteBuffer{};
+    if (!bufferStorage) bufferStorage = makeHeapByteBufferNoThrow(bufSize);
+    buffer = bufferStorage.get();
     if (!buffer) {
       LOG_ERR("IMG", "OOM cache band: %u bytes", (unsigned)bufSize);
       return false;
@@ -98,7 +106,7 @@ struct PixelCache {
 
     if (!Storage.openFileForWrite("IMG", cachePath, file)) {
       LOG_ERR("IMG", "Failed to open cache file for writing: %s", cachePath.c_str());
-      free(buffer);
+      bufferStorage.reset();
       buffer = nullptr;
       return false;
     }
@@ -124,18 +132,18 @@ struct PixelCache {
     if (newTopRow <= bandStart) return true;
     if (newTopRow > height) newTopRow = height;
 
-    for (int r = bandStart; r < newTopRow; ++r) {
-      const int idx = r - bandStart;
-      const uint8_t* rowPtr = (idx < bandRows) ? (buffer + (size_t)idx * bytesPerRow) : zeroRow;
-      if (file.write(rowPtr, (size_t)bytesPerRow) != (size_t)bytesPerRow) {
-        LOG_ERR("IMG", "Cache write error at row %d", r);
+    while (newTopRow >= bandStart + bandRows && bandStart < height) {
+      const int rowsToFlush = std::min(bandRows, height - bandStart);
+      const size_t bytesToFlush = static_cast<size_t>(rowsToFlush) * bytesPerRow;
+      if (file.write(buffer, bytesToFlush) != static_cast<int>(bytesToFlush)) {
+        LOG_ERR("IMG", "Cache write error at row %d", bandStart);
         ok = false;
         return false;
       }
+      flushedRows = bandStart + rowsToFlush;
+      bandStart += rowsToFlush;
+      memset(buffer, 0, static_cast<size_t>(bandRows) * bytesPerRow);  // fresh band (gaps stay black)
     }
-    flushedRows = newTopRow;
-    bandStart = newTopRow;
-    memset(buffer, 0, (size_t)bandRows * bytesPerRow);  // fresh band (gaps stay black)
     return true;
   }
 
@@ -146,14 +154,17 @@ struct PixelCache {
       abort();
       return false;
     }
-    for (int r = flushedRows; r < height; ++r) {
-      const int idx = r - bandStart;
-      const uint8_t* rowPtr = (idx >= 0 && idx < bandRows) ? (buffer + (size_t)idx * bytesPerRow) : zeroRow;
-      if (file.write(rowPtr, (size_t)bytesPerRow) != (size_t)bytesPerRow) {
-        LOG_ERR("IMG", "Cache write error at row %d", r);
+    while (flushedRows < height) {
+      const int rowsToFlush = std::min(bandRows, height - flushedRows);
+      const size_t bytesToFlush = static_cast<size_t>(rowsToFlush) * bytesPerRow;
+      if (file.write(buffer, bytesToFlush) != static_cast<int>(bytesToFlush)) {
+        LOG_ERR("IMG", "Cache write error at row %d", flushedRows);
         abort();
         return false;
       }
+      flushedRows += rowsToFlush;
+      bandStart = flushedRows;
+      if (flushedRows < height) memset(buffer, 0, static_cast<size_t>(bandRows) * bytesPerRow);
     }
     file.close();
     ok = false;  // file handed off; nothing left to clean up
@@ -176,9 +187,8 @@ struct PixelCache {
       // Drop the partial cache so we leave no corrupt file behind.
       abort();
     }
-    if (buffer) {
-      free(buffer);
-      buffer = nullptr;
-    }
+    buffer = nullptr;
+    zeroRow = nullptr;
+    bufferStorage.reset();
   }
 };

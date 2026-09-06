@@ -11,6 +11,9 @@
 #include <Utf8.h>
 #include <XmlParserUtils.h>
 #include <expat.h>
+#ifndef SIMULATOR
+#include <esp_task_wdt.h>
+#endif
 #include <strings.h>
 
 #include <algorithm>
@@ -3590,6 +3593,10 @@ ChapterHtmlSlimParser::ParseStatus ChapterHtmlSlimParser::parseStep() {
 
   const bool done = parseFile_.available() == 0;
   const XML_Status parseStatus = XML_ParseBuffer(activeParser, static_cast<int>(len), done);
+#ifndef SIMULATOR
+  esp_task_wdt_reset();
+#endif
+  delay(0);
   if (parseStatus == XML_STATUS_ERROR && !previewStopRequested) {
     if (htmlEnded_) {
       LOG_DBG("EHP", "Ignoring trailing data after </html>: %s", XML_ErrorString(XML_GetErrorCode(activeParser)));

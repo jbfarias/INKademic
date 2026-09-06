@@ -21,6 +21,7 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback, void*, s
 #include "OtaUpdater.h"
 #include "esp_http_client.h"
 #include "esp_ota_ops.h"
+#include "esp_task_wdt.h"
 #include "mbedtls/sha256.h"
 #include "network/HttpDownloader.h"
 #include "network/WifiPowerSaveGuard.h"
@@ -32,7 +33,7 @@ OtaUpdater::OtaUpdaterError OtaUpdater::installUpdate(ProgressCallback, void*, s
 
 namespace {
 #ifndef INKADEMIC_OTA_RELEASE_URL
-#define INKADEMIC_OTA_RELEASE_URL "https://api.github.com/repos/jbfarias/INKacademic/releases/latest"
+#define INKADEMIC_OTA_RELEASE_URL "https://api.github.com/repos/jbfarias/INKademic/releases/latest"
 #endif
 
 constexpr char latestReleaseUrl[] = INKADEMIC_OTA_RELEASE_URL;
@@ -268,6 +269,7 @@ struct OtaInstallContext {
 };
 
 esp_err_t release_manifest_event_handler(esp_http_client_event_t* event) {
+  esp_task_wdt_reset();
   if (event->event_id != HTTP_EVENT_ON_DATA) return ESP_OK;
   if (event->data_len <= 0) return ESP_OK;
 
@@ -328,6 +330,7 @@ OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {
         .crt_bundle_attach = esp_crt_bundle_attach,
         .keep_alive_enable = true,
     };
+    client_config.timeout_ms = 10000;
     // Keep CA validation enabled. This only relaxes the certificate-name check
     // for the local Unlocker bridge, whose trusted certificate is for
     // unlocker.crosspointreader.com while DNS maps api.github.com locally.
@@ -340,7 +343,11 @@ OtaUpdater::OtaUpdaterError OtaUpdater::checkForUpdate() {
     }
 
     esp_err_t result = esp_http_client_set_header(client_handle, "User-Agent", "INKademic-ESP32-" INKADEMIC_VERSION);
-    if (result == ESP_OK) result = esp_http_client_perform(client_handle);
+    if (result == ESP_OK) {
+      esp_task_wdt_reset();
+      result = esp_http_client_perform(client_handle);
+      esp_task_wdt_reset();
+    }
     if (result != ESP_OK) LOG_ERR("OTA", "manifest request failed: %s", esp_err_to_name(result));
 
     const esp_err_t cleanupResult = esp_http_client_cleanup(client_handle);
